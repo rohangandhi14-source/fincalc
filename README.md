@@ -1,2 +1,0 @@
-# fincalc
-Financial planning calculators
