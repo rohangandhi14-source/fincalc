@@ -1,0 +1,2236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FinCalc – Financial Calculators</title>
+<style>
+:root{--navy:#0B2545;--teal:#13807A;--teal-l:#E6F4F3;--gold:#C8963E;--bg:#F4F6F9;--text:#1F2937;--muted:#6B7280;--line:#E5E7EB;--red:#C0392B;}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+header{background:var(--navy);color:#fff;display:flex;align-items:center;gap:14px;padding:12px 20px;position:sticky;top:0;z-index:10}
+.logo{width:46px;height:46px;border-radius:8px;background:rgba(255,255,255,.1);border:1px dashed rgba(255,255,255,.55);display:flex;align-items:center;justify-content:center;font-size:9px;line-height:1.1;cursor:pointer;overflow:hidden;text-align:center;flex-shrink:0}
+.logo img{width:100%;height:100%;object-fit:contain;background:#fff}
+.firm{font-size:20px;font-weight:600;outline:none;border-bottom:1px dashed transparent}
+.firm:hover,.firm:focus{border-bottom-color:rgba(255,255,255,.5)}
+.tag{font-size:12px;opacity:.75}
+.layout{display:flex;min-height:calc(100vh - 70px)}
+nav{width:230px;background:#fff;border-right:1px solid var(--line);padding:14px 10px;flex-shrink:0}
+nav .grp{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:14px 10px 6px}
+nav button{display:block;width:100%;text-align:left;background:none;border:0;padding:10px 12px;border-radius:8px;font-size:14px;color:var(--text);cursor:pointer;margin-bottom:2px;font-family:inherit}
+nav button:hover:not(:disabled){background:#F3F4F6}
+nav button.active{background:var(--teal-l);color:var(--teal);font-weight:600}
+main{flex:1;padding:22px;min-width:0}
+.calc{display:none}.calc.active{display:block}
+.calc h2{margin:0 0 4px;color:var(--navy);font-size:22px}
+.calc .desc{margin:0 0 18px;color:var(--muted)}
+.grid{display:grid;grid-template-columns:350px minmax(0,1fr);gap:18px;align-items:start}
+.card{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.07);padding:18px;margin-bottom:18px}
+.card h3{margin:0;font-size:15px;color:var(--navy)}
+.card-h{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+.sub{font-size:12px;color:var(--muted);margin:-6px 0 12px}
+.field{margin-bottom:18px}
+.field label{display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px}
+.field .unit{color:var(--muted);font-weight:500}
+.field .row{display:flex;align-items:center;border:1px solid #D1D5DB;border-radius:8px;background:#fff;overflow:hidden}
+.field .row:focus-within{border-color:var(--teal);box-shadow:0 0 0 3px rgba(19,128,122,.15)}
+.field .row.bad{border-color:var(--red);box-shadow:0 0 0 3px rgba(192,57,43,.12)}
+.field .pre{padding:0 0 0 10px;color:var(--muted)}
+.field input[type=number],.field input[type=text],.field input[type=month],.field input[type=date],.field select{flex:1;border:0;outline:0;padding:9px 10px;font-size:15px;font-family:inherit;min-width:0;background:transparent;color:var(--text)}
+.field select{font-size:14px;cursor:pointer}
+.fnote{font-size:11px;color:var(--muted);margin-top:3px}
+.fhead{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--teal);border-top:1px solid var(--line);padding-top:14px;margin:6px 0 12px}
+.fhead span{display:block;text-transform:none;letter-spacing:0;font-weight:400;color:var(--muted);margin-top:2px}
+input[type=range]{width:100%;accent-color:var(--teal);margin:8px 0 0}
+.words{font-size:12px;color:var(--teal);margin-top:2px;min-height:14px}
+.err{color:var(--red);font-size:12px;margin-top:3px}
+.toggle{display:flex;flex-wrap:wrap;border:1px solid #D1D5DB;border-radius:8px;overflow:hidden}
+.toggle button{flex:1;border:0;background:#fff;padding:8px 6px;cursor:pointer;font-size:13px;font-family:inherit;color:var(--text)}
+.toggle button.on{background:var(--teal);color:#fff;font-weight:600}
+.hint{background:#FFF8EC;border:1px solid #F1DDB5;color:#7A5A1F;border-radius:8px;padding:9px 11px;font-size:12px;margin-top:4px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px}
+.kpi{background:#fff;border-radius:12px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.07);border-top:3px solid var(--teal)}
+.kpi .l{font-size:12px;color:var(--muted);margin-bottom:6px}
+.kpi .v{font-size:22px;font-weight:700;color:var(--navy)}
+.kpi .f{font-size:12px;color:var(--muted);margin-top:3px}
+.kpi.hl{background:var(--navy);border-top-color:var(--gold)}
+.kpi.hl .l,.kpi.hl .f{color:#C9D3E0}.kpi.hl .v{color:#fff}
+.kpi.good{border-top-color:#1E7A46}.kpi.good .v{color:#1E7A46}
+.kpi.badk{border-top-color:var(--red)}.kpi.badk .v{color:var(--red)}
+.alert{background:#FDECEA;color:var(--red);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-weight:600}
+.alert.warn{background:#FFF4E5;color:#9A5B00}
+.alert.ok{background:#E8F5EE;color:#1E7A46}
+.stale{opacity:.35;pointer-events:none}
+canvas{width:100%;height:320px;display:block;touch-action:pan-y}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid #D1D5DB;background:#fff;border-radius:8px;padding:7px 12px;font-size:13px;cursor:pointer;font-family:inherit;color:var(--text)}
+.btn:hover{border-color:var(--teal);color:var(--teal)}
+.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
+.btn.primary:hover{background:#0F6B66;color:#fff}
+.seg{display:inline-flex;border:1px solid #D1D5DB;border-radius:8px;overflow:hidden}
+.seg button{border:0;background:#fff;padding:7px 12px;font-size:13px;cursor:pointer;font-family:inherit}
+.seg button.on{background:var(--navy);color:#fff}
+.tablewrap{max-height:420px;overflow:auto;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th{background:#F3F5F8;color:var(--navy);position:sticky;top:0;text-align:right;padding:9px 10px;font-weight:600;white-space:nowrap;border-bottom:1px solid var(--line)}
+td{padding:7px 10px;border-bottom:1px solid #F0F1F3;text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+table.wrap td{white-space:normal}
+table.wrap td:first-child{min-width:190px}
+tbody tr:nth-child(even){background:#FAFBFC}
+tbody tr:hover{background:var(--teal-l)}
+tr.sel td{background:#FFF8EC!important;font-weight:600}
+td.up{color:var(--red)}td.down{color:#1E7A46}
+details.how summary{cursor:pointer;font-weight:600;color:var(--navy);font-size:15px}
+.how-body{margin-top:12px;line-height:1.6}
+.how-body code,.xl code{background:#F3F5F8;border:1px solid var(--line);border-radius:5px;padding:2px 6px;font-family:Consolas,monospace;font-size:13px;color:#0B4F4B}
+.how-body .fx{background:#F7F9FB;border-left:3px solid var(--teal);padding:8px 12px;margin:8px 0;font-family:Consolas,monospace;font-size:13px}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:0 22px}
+.gp-edit td{padding:5px 6px}
+.gp-edit th{text-align:left}
+.gp-edit input,.gp-edit select{width:100%;min-width:90px;border:1px solid #D1D5DB;border-radius:6px;padding:7px 8px;font-size:13px;font-family:inherit;text-align:right;background:#fff}
+.gp-edit input.gname,.gp-edit input[type=date]{min-width:150px;text-align:left}
+.gp-edit input.gname{min-width:190px}
+.gp-edit input.bad{border-color:var(--red);box-shadow:0 0 0 2px rgba(192,57,43,.15)}
+.gp-edit input:focus,.gp-edit select:focus{outline:0;border-color:var(--teal)}
+.del{border:0;background:#FDECEA;color:var(--red);border-radius:6px;width:28px;height:28px;cursor:pointer}
+.gp-foot{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;margin-top:14px}
+.chk{font-size:13px;font-weight:600;color:#374151;display:flex;align-items:center;gap:6px;cursor:pointer}
+.chk input{accent-color:var(--teal);width:16px;height:16px}
+.pr{font-size:11px;font-weight:600;border-radius:10px;padding:2px 8px}
+.pr-High{background:#FDECEA;color:#B03A2E}.pr-Medium{background:#FFF4E5;color:#9A5B00}.pr-Low{background:#E8F5EE;color:#1E7A46}
+tr.tot td{font-weight:700;background:#F3F5F8;border-top:2px solid var(--line)}
+.ftabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px}
+.ftabs button{border:1px solid #D1D5DB;background:#fff;border-radius:20px;padding:7px 14px;font-size:13px;cursor:pointer;font-family:inherit}
+.ftabs button.on{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:600}
+.xl{background:#F7F9FB;border:1px solid var(--line);border-left:4px solid #1D6F42;border-radius:8px;padding:12px 14px;margin-bottom:18px}
+.xl .t{font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:600}
+.xl .fml{font-family:Consolas,monospace;font-size:15px;color:#1D6F42;word-break:break-all}
+.xl .btn{margin-top:8px}
+footer{background:#fff;border-top:1px solid var(--line);padding:14px 22px;font-size:12px;color:var(--muted);text-align:center}
+footer b{color:var(--text)}
+.print-only{display:none}
+@media (max-width:900px){
+  .layout{flex-direction:column}
+  nav{width:100%;display:flex;overflow-x:auto;padding:8px;border-right:0;border-bottom:1px solid var(--line);gap:4px}
+  nav .grp{display:none}
+  nav button{white-space:nowrap;width:auto;margin:0}
+  .grid{grid-template-columns:minmax(0,1fr)}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kpi .v{font-size:18px}
+  main{padding:14px}
+  canvas{height:260px}
+  .firm{font-size:17px}
+}
+@media print{
+  @page{size:A4;margin:12mm}
+  body{background:#fff;font-size:12px}
+  header{position:static;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  nav,.actions,.seg,.ftabs,input[type=range],.logo:not(.has-img),.no-print{display:none!important}
+  .calc{display:none!important}.calc.active{display:block!important}
+  .layout{display:block}main{padding:0}
+  .grid{display:block}
+  .card,.kpi{box-shadow:none;border:1px solid #DDD;break-inside:avoid}
+  .kpi.hl{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .tablewrap{max-height:none;overflow:visible;border:0}
+  th{position:static}
+  .print-only{display:block}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo" id="logo" title="Click to upload your logo">Click to<br>add logo</div>
+  <input type="file" id="logoFile" accept="image/*" hidden>
+  <div>
+    <div class="firm" id="firmName" contenteditable="true" spellcheck="false" title="Click to edit your firm name">Your Firm Name</div>
+    <div class="tag">Financial Planning Calculators</div>
+  </div>
+</header>
+
+<div class="layout">
+  <nav id="nav">
+    <div class="grp">Investments</div>
+    <button data-calc="sip" class="active">SIP Calculator</button>
+    <button data-calc="swp">SWP Calculator</button>
+    <button data-calc="stp">STP Calculator</button>
+    <div class="grp">Planning</div>
+    <button data-calc="goal">Financial Goal</button>
+    <button data-calc="plan">Goal Planning</button>
+    <div class="grp">Loans &amp; Tools</div>
+    <button data-calc="home">Home Loan</button>
+    <button data-calc="car">Car / Vehicle Loan</button>
+    <button data-calc="fin">Financial Calculator</button>
+    <div class="grp">Bonds</div>
+    <button data-calc="bond">Bond Calculator</button>
+    <div class="grp">Returns</div>
+    <button data-calc="ci">Compound Interest</button>
+    <button data-calc="hpr">Holding Period Return</button>
+    <button data-calc="r72">Rule of 72</button>
+    <div class="grp">Tax</div>
+    <button data-calc="tax">Investment Tax</button>
+  </nav>
+  <main id="main"><div id="nojs" class="alert warn">This is only a preview, and the calculators cannot work here. Please <b>download FinCalc.html</b> to your computer and double-click it to open it in Chrome or Edge.</div></main>
+</div>
+
+<footer>
+  <b>Disclaimer:</b> Returns are illustrative and not guaranteed. Mutual fund investments are subject to market risks. Read all scheme-related documents carefully.
+  Figures assume a constant rate of return. Loan, bond and tax figures are indicative; actual terms are as per the lender / issuer documents and tax law. Please consult a tax advisor before acting.
+  <div class="print-only" id="printDate"></div>
+</footer>
+
+<script>
+/* =====================================================================
+   FORMATTING HELPERS (Indian Rupee, lakh / crore)
+   ===================================================================== */
+const NF = new Intl.NumberFormat('en-IN', {maximumFractionDigits: 0});
+const NF2 = new Intl.NumberFormat('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+function inr(x){ return (x < -0.5 ? '-' : '') + '₹' + NF.format(Math.abs(Math.round(x))); }
+function inr2(x){ return (x < -0.005 ? '-' : '') + '₹' + NF2.format(Math.abs(x)); }
+function short(x){
+  const a = Math.abs(x), s = x < 0 ? '-' : '';
+  if (a >= 1e7) return s + '₹' + (a/1e7).toFixed(2) + ' Cr';
+  if (a >= 1e5) return s + '₹' + (a/1e5).toFixed(2) + ' L';
+  return inr(x);
+}
+function esc(t){ return String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function trim(n){ return String(+n.toFixed(2)); }
+function axisFmt(v){
+  if (v >= 1e7) return '₹' + trim(v/1e7) + ' Cr';
+  if (v >= 1e5) return '₹' + trim(v/1e5) + ' L';
+  if (v >= 1e3) return '₹' + trim(v/1e3) + 'K';
+  return '₹' + trim(v);
+}
+function ym(m){ if (m <= 0) return '0 mths'; const y = Math.floor(m/12), r = m % 12; return (y ? y + ' yr' + (y>1?'s':'') : '') + (y && r ? ' ' : '') + (r ? r + ' mth' + (r>1?'s':'') : ''); }
+function mDate(start, m){ const [y, mo] = start.split('-').map(Number); return new Date(y, mo - 1 + m - 1, 1).toLocaleDateString('en-IN', {month:'short', year:'numeric'}); }
+
+/* =====================================================================
+   ENGINE – pure calculation functions (match Excel conventions)
+   ===================================================================== */
+// ENGINE-START
+function sipCalc(v){
+  const r = v.rate/1200, n = v.years*12;
+  let bal = 0, inv = 0, cur = v.amt;
+  const months = [];
+  for (let m = 1; m <= n; m++){
+    if (m > 1 && (m-1) % 12 === 0) cur = cur * (1 + v.stepUp/100);
+    if (v.timing === 'start'){ bal += cur; bal *= (1 + r); }
+    else { bal *= (1 + r); bal += cur; }
+    inv += cur;
+    months.push({m, sip: cur, invested: inv, value: bal});
+  }
+  return {invested: inv, value: bal, gains: bal - inv, months};
+}
+
+function swpCalc(v){
+  const r = v.rate/1200, n = v.years*12;
+  let bal = v.corpus, cur = v.wd, totW = 0, totI = 0, runOut = null;
+  const months = [];
+  for (let m = 1; m <= n; m++){
+    if (m > 1 && (m-1) % 12 === 0) cur = cur * (1 + v.inc/100);
+    const open = bal; let w, g;
+    if (v.timing === 'start'){ w = Math.min(cur, bal); bal -= w; g = bal * r; bal += g; }
+    else { g = bal * r; bal += g; w = Math.min(cur, bal); bal -= w; }
+    totW += w; totI += g;
+    months.push({m, open, planned: cur, wd: w, interest: g, bal});
+    if (w < cur - 0.005 || (bal < 0.5 && m < n)){ runOut = m; bal = Math.max(0, bal); break; }
+  }
+  return {withdrawn: totW, interest: totI, balance: bal, runOut, months};
+}
+
+function stpCalc(v){
+  const a = v.rs/1200, b = v.rt/1200, n = v.months;
+  let src = v.lump, tgt = 0, moved = 0, lumpOnly = v.lump, exhausted = null;
+  const months = [];
+  for (let m = 1; m <= n; m++){
+    const t = Math.min(v.transfer, src);
+    if (t < v.transfer - 0.005 && exhausted === null) exhausted = m;
+    src -= t; tgt += t; moved += t;
+    src *= (1 + a); tgt *= (1 + b); lumpOnly *= (1 + b);
+    months.push({m, t, moved, src, tgt, total: src + tgt, lumpOnly});
+  }
+  return {src, tgt, total: src + tgt, lumpOnly, moved, exhausted, months};
+}
+
+/* ---- Excel-equivalent TVM functions (same sign convention as Excel) ---- */
+function xlPMT(rate, n, pv, fv, type){
+  if (rate === 0) return -(pv + fv)/n;
+  const g = Math.pow(1 + rate, n);
+  return -(rate * (pv * g + fv)) / ((1 + rate*type) * (g - 1));
+}
+function xlFV(r, n, pmt, pv, t){ if (r === 0) return -(pv + pmt*n); const g = Math.pow(1 + r, n); return -(pv*g + pmt*(1 + r*t)*(g - 1)/r); }
+function xlPV(r, n, pmt, fv, t){ if (r === 0) return -(fv + pmt*n); const g = Math.pow(1 + r, n); return -(fv + pmt*(1 + r*t)*(g - 1)/r)/g; }
+function xlNPER(r, pmt, pv, fv, t){
+  if (r === 0) return pmt === 0 ? NaN : -(pv + fv)/pmt;
+  const num = pmt*(1 + r*t) - fv*r, den = pv*r + pmt*(1 + r*t);
+  if (den === 0 || num/den <= 0) return NaN;
+  return Math.log(num/den)/Math.log(1 + r);
+}
+function findRoot(f, lo, hi, near){
+  const roots = [], steps = 4000;
+  let x0 = lo, f0 = f(x0);
+  for (let i = 1; i <= steps; i++){
+    const x1 = lo + (hi - lo) * Math.pow(i/steps, 2), f1 = f(x1);
+    if (isFinite(f0) && isFinite(f1) && (f0 === 0 || f0*f1 < 0)){
+      let a = x0, b = x1, fa = f0;
+      for (let k = 0; k < 200; k++){ const c = (a + b)/2, fc = f(c); if (fa*fc <= 0) b = c; else { a = c; fa = fc; } }
+      roots.push((a + b)/2);
+    }
+    x0 = x1; f0 = f1;
+  }
+  if (!roots.length) return NaN;
+  return roots.sort((a, b) => Math.abs(a - near) - Math.abs(b - near))[0];
+}
+function xlRATE(n, pmt, pv, fv, t){
+  return findRoot(r => Math.abs(r) < 1e-12 ? pv + pmt*n + fv : pv*Math.pow(1 + r, n) + pmt*(1 + r*t)*(Math.pow(1 + r, n) - 1)/r + fv, -0.99, 3, 0.01);
+}
+function npvAt(r, cfs){ return cfs.reduce((s, c, i) => s + c/Math.pow(1 + r, i), 0); }
+function xlIRR(cfs){ return findRoot(r => npvAt(r, cfs), -0.99, 10, 0.1); }
+function xnpvAt(r, flows){ const d0 = flows[0].d; return flows.reduce((s, f) => s + f.a/Math.pow(1 + r, (f.d - d0)/864e5/365), 0); }
+function xlXIRR(flows){ return findRoot(r => xnpvAt(r, flows), -0.99, 20, 0.1); }
+
+/* ---- Phase 2 engine ---- */
+function fvAnnuityDue(r, N){ return r === 0 ? N : (Math.pow(1 + r, N) - 1) / r * (1 + r); }
+function goalMath(g){
+  const r = g.rate/1200, N = Math.round(g.years*12), disc = Math.pow(1 + r, N);
+  const fvCost = g.cost * Math.pow(1 + g.inf/100, g.years);
+  const fvSav = g.sav * disc;
+  const gap = Math.max(0, fvCost - fvSav);
+  const sipFlat = gap / fvAnnuityDue(r, N);
+  const stepF = sipCalc({amt:1, rate:g.rate, years:g.years, stepUp:g.stepUp || 0, timing:'start'}).value;
+  return {N, fvCost, fvSav, gap, surplus: Math.max(0, fvSav - fvCost),
+          lumpTotal: fvCost/disc, lumpExtra: gap/disc, sipFlat, sipStep: gap/stepF};
+}
+function retMath(v){
+  const N = v.retAge - v.age, M = v.life - v.retAge, r2 = v.post/1200;
+  const expRet = v.exp * Math.pow(1 + v.inf/100, N);
+  let corpus = 0;
+  for (let m = 0; m < 12*M; m++) corpus += expRet * Math.pow(1 + v.inf/100, Math.floor(m/12)) / Math.pow(1 + r2, m);
+  const g = goalMath({cost: corpus, years: N, inf: 0, sav: v.sav, rate: v.pre, stepUp: v.stepUp});
+  return Object.assign(g, {N, M, expRet, corpus});
+}
+
+/* ---- Phase 3 loan engine ---- */
+function emiOf(r, n, P){ return r === 0 ? P/n : P*r/(1 - Math.pow(1 + r, -n)); }
+function nperLoan(r, emi, P){ return r === 0 ? P/emi : -Math.log(1 - P*r/emi)/Math.log(1 + r); }
+function loanRun(o){
+  let r = o.rate/1200, bal = o.P, emi = emiOf(r, o.n, o.P), end = o.n, negAm = false, rcBal = null, rcEmiNew = null;
+  const emi0 = emi, rows = [];
+  let totInt = 0, totPre = 0, totEmi = 0;
+  for (let m = 1; m <= 1200 && bal > 0.005; m++){
+    if (o.rcDelta && m === o.rcMonth){
+      r = (o.rate + o.rcDelta)/1200; rcBal = bal;
+      const left = Math.max(1, end - m + 1);
+      if (o.rcMode === 'emi') emi = emiOf(r, left, bal);
+      else if (emi <= bal*r*1.0001){ negAm = true; emi = emiOf(r, left, bal); }
+      else end = m - 1 + Math.ceil(nperLoan(r, emi, bal) - 1e-6);
+      rcEmiNew = emi;
+    }
+    const open = bal, int = bal*r, pr = Math.min(emi - int, bal), pay = int + pr;
+    bal -= pr;
+    let pre = 0;
+    if (m % 12 === 0){ pre += (o.extraEmis || 0)*emi + (o.annAmt || 0); }
+    if (o.otAmt > 0 && m === o.otMonth) pre += o.otAmt;
+    pre = Math.min(pre, bal); bal -= pre;
+    if (bal < 0.005) bal = 0;
+    if (pre > 0 && o.mode === 'emi' && bal > 0 && end - m > 0) emi = emiOf(r, end - m, bal);
+    totInt += int; totPre += pre; totEmi += pay;
+    rows.push({m, rate: r*1200, emi: pay, int, pr, pre, open, bal});
+  }
+  return {rows, totInt, totPre, totEmi, months: rows.length, emi0, negAm, rcBal, rcEmiNew};
+}
+
+/* ---- Phase 4 bond engine (same conventions as Excel YIELD / PRICE / DURATION / MDURATION) ----
+   basis 0 = US 30/360, 1 = Actual/Actual, 3 = Actual/365. Prices per 100 of face value. */
+function pd(s){ const [y, m, d] = s.split('-').map(Number); return {y, m, d}; }
+function dim(y, m){ return new Date(Date.UTC(y, m, 0)).getUTCDate(); }
+function toT(o){ return Date.UTC(o.y, o.m - 1, o.d); }
+function shiftM(o, k, eom){ const t = o.y*12 + (o.m - 1) + k, y = Math.floor(t/12), m = t - y*12 + 1, dd = dim(y, m); return {y, m, d: eom ? dd : Math.min(o.d, dd)}; }
+function d360(a, b){
+  let d1 = a.d, d2 = b.d; const lf = o => o.m === 2 && o.d === dim(o.y, 2);
+  if (lf(a) && lf(b)) d2 = 30; if (lf(a)) d1 = 30;
+  if (d2 === 31 && d1 >= 30) d2 = 30; if (d1 === 31) d1 = 30;
+  return 360*(b.y - a.y) + 30*(b.m - a.m) + (d2 - d1);
+}
+function actD(a, b){ return Math.round((toT(b) - toT(a))/864e5); }
+function coupInfo(st, mat, f, basis){
+  const eom = mat.d === dim(mat.y, mat.m), step = 12/f;
+  let k = 0, pcd;
+  while (true){ pcd = shiftM(mat, -step*(k + 1), eom); if (toT(pcd) <= toT(st)) break; k++; }
+  const ncd = k === 0 ? mat : shiftM(mat, -step*k, eom), N = k + 1;
+  const E = basis === 0 ? 360/f : basis === 1 ? actD(pcd, ncd) : 365/f;
+  const A = basis === 0 ? d360(pcd, st) : actD(pcd, st);
+  const DSC = basis === 0 ? E - A : actD(st, ncd);
+  const dates = []; for (let j = N - 1; j >= 0; j--) dates.push(j === 0 ? mat : shiftM(mat, -step*j, eom));
+  return {pcd, ncd, N, E, A, DSC, eom, step, dates};
+}
+function bondPx(y, b){
+  const c = b.c, f = b.f, cpn = 100*b.rate/f;
+  if (c.N === 1) return (b.red + cpn)/(1 + c.DSC/c.E*y/f) - cpn*c.A/c.E;
+  let s = b.red/Math.pow(1 + y/f, c.N - 1 + c.DSC/c.E);
+  for (let k = 1; k <= c.N; k++) s += cpn/Math.pow(1 + y/f, k - 1 + c.DSC/c.E);
+  return s - cpn*c.A/c.E;
+}
+function xlYIELD(b, price){ return findRoot(y => bondPx(y, b) - price, -0.5, 3, 0.07); }
+function bondDur(y, b){
+  const c = b.c, f = b.f, cpn = 100*b.rate/f;
+  let num = 0, den = 0, cx = 0;
+  for (let k = 1; k <= c.N; k++){
+    const n = k - 1 + c.DSC/c.E, cf = cpn + (k === c.N ? b.red : 0), pv = cf/Math.pow(1 + y/f, n);
+    num += n*pv; den += pv; cx += cf*n*(n + 1)/Math.pow(1 + y/f, n + 2);
+  }
+  const mac = num/den/f;
+  return {mac, mod: mac/(1 + y/f), conv: cx/den/(f*f)};
+}
+
+/* ---- Phase 5 capital gains tax engine (resident individuals, sales on/after 23-Jul-2024) ----
+   Rules: Finance (No. 2) Act 2024, Finance Act 2025 (specified MF = >65% debt), unchanged in Budget 2026. */
+const TAX_ASSETS = {
+  eq:    {nm:'Listed shares / Equity MF / Equity-oriented hybrid (≥65% Indian equity)', sh:'Equity / Equity MF', th:12, st:'20', lt:'12.5x', gf:true},
+  reit:  {nm:'REIT / InvIT units (listed)', sh:'REIT / InvIT', th:12, st:'20', lt:'12.5x', gf:true},
+  debt:  {nm:'Debt MF / Debt-oriented hybrid (>65% in debt)', sh:'Debt MF', th:24, st:'slab', lt:'12.5', specNew:true},
+  oth:   {nm:'Other hybrid / FoF – BAF, multi-asset (<65% equity, ≤65% debt), Gold, Silver & International FoF', sh:'Other hybrid / FoF', th:24, st:'slab', lt:'12.5', specOld:true},
+  etf:   {nm:'Gold / Silver / International ETF (listed)', sh:'Gold / Intl ETF', th:12, st:'slab', lt:'12.5', specOld:true},
+  bondL: {nm:'Listed bonds / NCDs / G-Secs (sold on exchange)', sh:'Listed bond', th:12, st:'slab', lt:'12.5'},
+  bondU: {nm:'Unlisted bonds / debentures / Market-linked debentures', sh:'Unlisted bond / MLD', slabAlways:true},
+  sgb:   {nm:'Sovereign Gold Bond (SGB)', sh:'SGB', th:12, st:'slab', lt:'12.5', sgb:true},
+  phys:  {nm:'Physical gold / jewellery / Unlisted shares', sh:'Physical gold / Unlisted', th:24, st:'slab', lt:'12.5'}
+};
+function addDays(o, n){ const d = new Date(toT(o) + n*864e5); return {y: d.getUTCFullYear(), m: d.getUTCMonth() + 1, d: d.getUTCDate()}; }
+function ymd(o){ return o.y + '-' + String(o.m).padStart(2, '0') + '-' + String(o.d).padStart(2, '0'); }
+function ltDate(b, th){ return addDays(shiftM(b, th, false), 1); }   // first sale date that counts as long-term ("more than" th months)
+// v: {asset, buy, sell, exp, bDate, sDate, fmv, exUsed, slab, sur, sgbMode}
+function capTax(key, v, sDateOverride){
+  const A = TAX_ASSETS[key], b = pd(v.bDate), s = pd(sDateOverride || v.sDate);
+  let cost = v.buy, gfApplied = false;
+  let kind, sec, rate, label, lt = false;
+  const isLT = th => toT(s) >= toT(ltDate(b, th));
+  if (A.slabAlways){ kind = 'slab'; label = 'Deemed short-term (slab)'; sec = 'Sec 50AA – taxed at slab regardless of holding period'; }
+  else if (A.specNew && v.bDate >= '2023-04-01'){ kind = 'slab'; label = 'Deemed short-term (slab)'; sec = 'Sec 50AA – debt fund bought on/after 1-Apr-2023, slab rate regardless of holding period'; }
+  else if (A.specOld && v.bDate >= '2023-04-01' && ymd(s) < '2025-04-01'){ kind = 'slab'; label = 'Deemed short-term (slab)'; sec = 'Sec 50AA (old definition, sales up to 31-Mar-2025) – slab rate'; }
+  else if (A.sgb && v.sgbMode === 'rbi'){ kind = 'exempt'; label = 'Exempt'; sec = 'Redemption of SGB with RBI is exempt from capital gains tax'; }
+  else if (isLT(A.th)){ lt = true; kind = A.lt; label = 'Long-term'; sec = A.lt === '12.5x' ? 'Sec 112A – 12.5% above ₹1.25 lakh exemption' : 'Sec 112 – 12.5% without indexation'; }
+  else { kind = A.st; label = 'Short-term'; sec = A.st === '20' ? 'Sec 111A – 20% flat' : 'Taxed at your slab rate'; }
+  if (A.gf && lt && v.bDate < '2018-02-01' && v.fmv > 0){ cost = Math.max(v.buy, Math.min(v.fmv, v.sell)); gfApplied = true; }
+  const gain = v.sell - cost - (v.exp || 0);
+  let exempt = 0, taxable = Math.max(0, gain), baseRate, surRate, special;
+  if (kind === 'exempt'){ taxable = 0; baseRate = 0; surRate = 0; special = true; }
+  else if (kind === '12.5x'){ exempt = Math.min(taxable, Math.max(0, 125000 - (v.exUsed || 0))); taxable -= exempt; baseRate = 12.5; special = true; }
+  else if (kind === '12.5'){ baseRate = 12.5; special = true; }
+  else if (kind === '20'){ baseRate = 20; special = true; }
+  else { baseRate = v.slab; special = false; }
+  surRate = kind === 'exempt' ? 0 : (special ? Math.min(v.sur, 15) : v.sur);
+  const tax = taxable*baseRate/100, sur = tax*surRate/100, cess = (tax + sur)*0.04, total = tax + sur + cess;
+  const days = actD(b, s);
+  return {key, A, kind, label, sec, lt, gain, cost, gfApplied, exempt, taxable, baseRate, surRate, tax, sur, cess, total,
+          eff: gain > 0 ? total/gain : 0, net: gain - total, days, ltOn: A.th && !A.slabAlways ? ltDate(b, A.th) : null};
+}
+// ENGINE-END
+
+/* =====================================================================
+   CALCULATOR DEFINITIONS
+   ===================================================================== */
+const NAVY = '#0B2545', TEAL = '#13807A', GOLD = '#C8963E', GREY = '#94A3B8', RED = '#C0392B';
+const yrN = y => 'Y' + y;
+
+const CALCS = {
+/* ------------------------------ SIP ------------------------------ */
+sip: {
+  title: 'SIP Calculator',
+  desc: 'Estimate the future value of a monthly Systematic Investment Plan, with an optional annual step-up.',
+  chartTitle: 'Amount invested vs. estimated returns (year-end)',
+  fields: [
+    {id:'amt',    label:'Monthly SIP amount', unit:'₹', min:100, max:10000000, step:500, sliderMax:200000, val:10000},
+    {id:'rate',   label:'Expected annual return', unit:'%', min:0, max:30, step:0.1, val:12},
+    {id:'years',  label:'Investment period', unit:'Years', min:1, max:40, step:1, val:10, int:true},
+    {id:'stepUp', label:'Annual step-up (optional)', unit:'%', min:0, max:50, step:1, val:0, opt:true},
+    {id:'timing', type:'toggle', label:'SIP instalment date', options:[['start','Start of month'],['end','End of month']], val:'start'}
+  ],
+  compute(v){
+    const s = sipCalc(v), n = v.years*12, type = v.timing === 'start' ? 1 : 0;
+    const yrs = [];
+    for (let y = 1; y <= v.years; y++){
+      const ms = s.months.slice((y-1)*12, y*12), last = ms[ms.length-1];
+      yrs.push([y, ms[0].sip, ms.reduce((a,b)=>a+b.sip,0), last.invested, last.value - last.invested, last.value]);
+    }
+    const mon = s.months.map(m => [m.m, Math.ceil(m.m/12), m.sip, m.invested, m.value - m.invested, m.value]);
+    const xl = `=FV(${v.rate}%/12, ${n}, -${v.amt}, 0, ${type})`;
+    const how = `
+      <p><b>Step 1 – Monthly rate:</b> r = ${v.rate}% ÷ 12 = ${trim(v.rate/12)}% per month. <b>Number of instalments:</b> n = ${v.years} × 12 = ${n}.</p>
+      <p><b>Step 2 – Formula</b> (${v.timing === 'start' ? 'instalment at start of month' : 'instalment at end of month'}):</p>
+      <div class="fx">FV = P × [((1 + r)<sup>n</sup> − 1) ÷ r]${type ? ' × (1 + r)' : ''}</div>
+      ${v.stepUp > 0
+        ? `<p><b>With step-up:</b> the SIP rises by ${v.stepUp}% every 12 months, so there is no single Excel function. The app compounds month by month. To check in Excel, make a monthly column where the SIP changes every 12 rows. Without step-up, the Excel check would be <code>${xl}</code>.</p>`
+        : `<p><b>Excel check:</b> <code>${xl}</code> → ${inr(s.value)}</p>`}
+      <p><b>Note:</b> Some websites use an effective monthly rate, (1 + annual rate)<sup>1/12</sup> − 1, so their answers are slightly lower. This app uses rate ÷ 12 so it matches Excel's FV function.</p>`;
+    return {
+      kpis: [
+        {l:'Total amount invested', v:s.invested},
+        {l:'Estimated returns', v:s.gains},
+        {l:'Maturity value', v:s.value, hl:true},
+        {l:'Wealth multiple', txt: (s.invested ? (s.value/s.invested).toFixed(2) : '0') + 'x', f:'Maturity value ÷ invested'}
+      ],
+      chart: {type:'bar', stacked:true, labels: yrs.map(y=>yrN(y[0])),
+        series:[{name:'Amount invested', color:NAVY, data: yrs.map(y=>y[3])},
+                {name:'Estimated returns', color:TEAL, data: yrs.map(y=>y[4])}]},
+      tables: {
+        year: {head:[{h:'Year'},{h:'Monthly SIP',t:'inr'},{h:'Invested in year',t:'inr'},{h:'Total invested',t:'inr'},{h:'Total returns',t:'inr'},{h:'Year-end value',t:'inr'}], rows: yrs},
+        month:{head:[{h:'Month'},{h:'Year'},{h:'SIP amount',t:'inr'},{h:'Total invested',t:'inr'},{h:'Total returns',t:'inr'},{h:'Value',t:'inr'}], rows: mon}
+      },
+      how
+    };
+  }
+},
+
+/* ------------------------------ SWP ------------------------------ */
+swp: {
+  title: 'SWP Calculator',
+  desc: 'See how long a corpus lasts with regular monthly withdrawals, with an optional annual increase for inflation.',
+  chartTitle: 'Corpus balance and total withdrawals over time',
+  fields: [
+    {id:'corpus', label:'Total investment (corpus)', unit:'₹', min:10000, max:10000000000, step:10000, sliderMax:50000000, val:5000000},
+    {id:'wd',     label:'Monthly withdrawal', unit:'₹', min:100, max:100000000, step:1000, sliderMax:500000, val:30000},
+    {id:'rate',   label:'Expected annual return', unit:'%', min:0, max:30, step:0.1, val:8},
+    {id:'years',  label:'Withdrawal period', unit:'Years', min:1, max:50, step:1, val:20, int:true},
+    {id:'inc',    label:'Annual increase in withdrawal (inflation)', unit:'%', min:0, max:20, step:0.5, val:0},
+    {id:'timing', type:'toggle', label:'Withdrawal date', options:[['end','End of month'],['start','Start of month']], val:'end'}
+  ],
+  compute(v){
+    if (v.wd > v.corpus) return {error:'Monthly withdrawal cannot be more than the total investment.'};
+    const s = swpCalc(v), n = v.years*12, type = v.timing === 'start' ? 1 : 0;
+    const yrs = []; let cumW = 0;
+    const lab = ['Start'], bal = [v.corpus], cum = [0];
+    for (let y = 1; y <= Math.ceil(s.months.length/12); y++){
+      const ms = s.months.slice((y-1)*12, y*12), last = ms[ms.length-1];
+      const w = ms.reduce((a,b)=>a+b.wd,0), g = ms.reduce((a,b)=>a+b.interest,0);
+      cumW += w;
+      yrs.push([y, ms[0].open, ms[0].planned, w, g, last.bal]);
+      lab.push(yrN(y)); bal.push(last.bal); cum.push(cumW);
+    }
+    const mon = s.months.map(m => [m.m, Math.ceil(m.m/12), m.open, m.wd, m.interest, m.bal]);
+    const sustain = xlPMT(v.rate/1200, n, -v.corpus, 0, type);
+    const how = `
+      <p><b>Monthly rate:</b> r = ${v.rate}% ÷ 12 = ${trim(v.rate/12)}%. Each month the balance ${type ? 'is reduced by the withdrawal and then earns r' : 'earns r and then the withdrawal is taken out'}.</p>
+      ${v.inc > 0
+        ? `<p><b>With a ${v.inc}% annual increase</b>, the withdrawal rises every 12 months, so the app calculates month by month (there is no single Excel function). Without the increase, the Excel check would be <code>=FV(${v.rate}%/12, ${n}, ${v.wd}, -${v.corpus}, ${type})</code>.</p>`
+        : `<p><b>Excel check, balance after ${n} months:</b> <code>=FV(${v.rate}%/12, ${n}, ${v.wd}, -${v.corpus}, ${type})</code>${s.runOut ? ' (a negative answer means the corpus has already run out)' : ' → ' + inr(s.balance)}</p>
+           <p><b>Excel check, months the corpus lasts:</b> <code>=NPER(${v.rate}%/12, ${v.wd}, -${v.corpus}, 0, ${type})</code>. If Excel returns #NUM!, the corpus never runs out because returns cover the withdrawals.</p>`}
+      <p><b>Withdrawal that uses up the corpus exactly in ${v.years} years</b> (flat, no increase): <code>=PMT(${v.rate}%/12, ${n}, -${v.corpus}, 0, ${type})</code> → ${inr(sustain)} per month.</p>`;
+    return {
+      warn: s.runOut ? `The corpus runs out in month ${s.runOut} (after ${ym(s.runOut)}), before the ${v.years}-year period ends.` : '',
+      kpis: [
+        {l:'Total amount withdrawn', v:s.withdrawn},
+        {l:'Total returns earned', v:s.interest},
+        {l:'Balance at end', v:s.balance, hl:true},
+        {l:'Corpus lasts', txt: s.runOut ? ym(s.runOut) : 'Full ' + v.years + ' yrs', f: s.runOut ? 'Runs out in month ' + s.runOut : 'Does not run out'}
+      ],
+      chart: {type:'line', labels: lab,
+        series:[{name:'Corpus balance', color:TEAL, data: bal},
+                {name:'Total withdrawn (cumulative)', color:GOLD, data: cum}]},
+      tables: {
+        year: {head:[{h:'Year'},{h:'Opening balance',t:'inr'},{h:'Monthly withdrawal',t:'inr'},{h:'Withdrawn in year',t:'inr'},{h:'Returns earned',t:'inr'},{h:'Closing balance',t:'inr'}], rows: yrs},
+        month:{head:[{h:'Month'},{h:'Year'},{h:'Opening balance',t:'inr'},{h:'Withdrawal',t:'inr'},{h:'Returns',t:'inr'},{h:'Closing balance',t:'inr'}], rows: mon}
+      },
+      how
+    };
+  }
+},
+
+/* ------------------------------ STP ------------------------------ */
+stp: {
+  title: 'STP Calculator',
+  desc: 'Park a lumpsum in a debt or liquid fund and move a fixed amount into an equity fund every month. Compare the result with investing the full lumpsum at once.',
+  chartTitle: 'STP value vs. investing the lumpsum at once (month-end)',
+  defaultView: 'month',
+  fields: [
+    {id:'lump',     label:'Lumpsum in source fund (debt/liquid)', unit:'₹', min:10000, max:10000000000, step:10000, sliderMax:10000000, val:1200000},
+    {id:'rs',       label:'Source fund annual return', unit:'%', min:0, max:20, step:0.1, val:7},
+    {id:'rt',       label:'Target fund (equity) annual return', unit:'%', min:0, max:30, step:0.1, val:12},
+    {id:'transfer', label:'Monthly transfer amount', unit:'₹', min:100, max:1000000000, step:1000, sliderMax:1000000, val:100000},
+    {id:'months',   label:'STP period', unit:'Months', min:1, max:120, step:1, val:12, int:true}
+  ],
+  compute(v){
+    if (v.transfer > v.lump) return {error:'Monthly transfer amount cannot be more than the lumpsum.'};
+    const s = stpCalc(v), n = v.months;
+    const mon = s.months.map(m => [m.m, m.t, m.moved, m.src, m.tgt, m.total, m.lumpOnly]);
+    const yrs = [];
+    for (let y = 1; y <= Math.ceil(n/12); y++){
+      const ms = s.months.slice((y-1)*12, y*12), l = ms[ms.length-1];
+      yrs.push([y, ms.reduce((a,b)=>a+b.t,0), l.src, l.tgt, l.total, l.lumpOnly]);
+    }
+    const lab = ['M0'].concat(s.months.map(m=>'M'+m.m));
+    const diff = s.total - s.lumpOnly;
+    const how = `
+      <p><b>Method:</b> At the start of each month, ₹${NF.format(v.transfer)} moves from the source fund to the target fund. Both funds then grow for the month: the source at ${v.rs}% ÷ 12 and the target at ${v.rt}% ÷ 12.</p>
+      <p><b>Excel checks</b>${s.exhausted ? ' (valid only while the source fund still has money, i.e., when transfers do not run out early)' : ''}:</p>
+      <div class="fx">Source fund value: =FV(${v.rs}%/12, ${n}, ${v.transfer}, -${v.lump}, 1)${s.exhausted ? '' : ' → ' + inr(s.src)}<br>
+      Target fund value: =FV(${v.rt}%/12, ${n}, -${v.transfer}, 0, 1)${s.exhausted ? '' : ' → ' + inr(s.tgt)}<br>
+      Lumpsum alternative: =FV(${v.rt}%/12, ${n}, 0, -${v.lump}) → ${inr(s.lumpOnly)}</div>
+      <p><b>Important for client discussions:</b> This calculator assumes constant returns, so if equity returns are higher than debt returns, investing the lumpsum at once will always look better. The real benefit of an STP is <i>rupee-cost averaging</i>: it lowers timing risk when markets are volatile. A fixed-return calculator cannot show that benefit.</p>`;
+    return {
+      hint: `To transfer the full lumpsum over ${n} months, set the transfer to about ${inr(v.lump/n)} per month.`,
+      warn: s.exhausted ? `The source fund runs out in month ${s.exhausted}. From then on, only the remaining balance is transferred.` : '',
+      kpis: [
+        {l:'Value in source fund', v:s.src},
+        {l:'Value in target fund', v:s.tgt},
+        {l:'Total STP value', v:s.total, hl:true},
+        {l:'If lumpsum invested at once', v:s.lumpOnly},
+        {l:'STP vs. lumpsum', v:diff, f: diff >= 0 ? 'STP ahead' : 'Lumpsum ahead (at constant returns)'}
+      ],
+      chart: {type:'line', labels: lab,
+        series:[{name:'Total STP value', color:NAVY, data:[v.lump].concat(s.months.map(m=>m.total))},
+                {name:'Lumpsum at once', color:GOLD, dash:true, data:[v.lump].concat(s.months.map(m=>m.lumpOnly))},
+                {name:'Target (equity) fund', color:TEAL, data:[0].concat(s.months.map(m=>m.tgt))},
+                {name:'Source (debt) fund', color:GREY, data:[v.lump].concat(s.months.map(m=>m.src))}]},
+      tables: {
+        year: {head:[{h:'Year'},{h:'Transferred in year',t:'inr'},{h:'Source fund',t:'inr'},{h:'Target fund',t:'inr'},{h:'Total STP value',t:'inr'},{h:'Lumpsum alternative',t:'inr'}], rows: yrs},
+        month:{head:[{h:'Month'},{h:'Transfer',t:'inr'},{h:'Total transferred',t:'inr'},{h:'Source fund',t:'inr'},{h:'Target fund',t:'inr'},{h:'Total STP value',t:'inr'},{h:'Lumpsum alternative',t:'inr'}], rows: mon}
+      },
+      how
+    };
+  }
+},
+
+/* ------------------------------ FINANCIAL GOAL ------------------------------ */
+goal: {
+  title: 'Financial Goal Calculator',
+  desc: 'Find out what a goal will cost in future, and the lumpsum or monthly SIP needed to reach it.',
+  chartTitle: 'Path to the goal: projected corpus vs. target',
+  fields: [
+    {id:'name',   type:'text', label:'Goal name', val:"Child's Higher Education"},
+    {id:'cost',   label:"Cost of the goal in today's terms", unit:'₹', min:1000, max:10000000000, step:50000, sliderMax:20000000, val:2500000},
+    {id:'years',  label:'Years to goal', unit:'Years', min:1, max:40, step:1, val:12, int:true},
+    {id:'inf',    label:'Expected inflation for this goal', unit:'%', min:0, max:20, step:0.5, val:8},
+    {id:'sav',    label:'Existing savings for this goal', unit:'₹', min:0, max:10000000000, step:10000, sliderMax:10000000, val:200000},
+    {id:'rate',   label:'Expected annual return', unit:'%', min:0, max:30, step:0.1, val:12},
+    {id:'stepUp', label:'Annual step-up in SIP (optional)', unit:'%', min:0, max:50, step:1, val:0, opt:true}
+  ],
+  compute(v){
+    const g = goalMath(v), r = v.rate/1200, N = g.N, hasStep = v.stepUp > 0;
+    let flat = v.sav, step = v.sav, cur = g.sipStep;
+    const months = [];
+    for (let m = 1; m <= N; m++){
+      if (m > 1 && (m-1) % 12 === 0) cur *= 1 + v.stepUp/100;
+      flat = (flat + g.sipFlat) * (1 + r); step = (step + cur) * (1 + r);
+      months.push({m, sav: v.sav*Math.pow(1+r, m), fs: g.sipFlat, flat, ss: cur, step});
+    }
+    const yrs = [];
+    for (let y = 1; y <= v.years; y++){
+      const ms = months.slice((y-1)*12, y*12), l = ms[ms.length-1];
+      const row = [y, v.cost*Math.pow(1+v.inf/100, y), l.sav, ms[0].fs, l.flat];
+      if (hasStep) row.push(ms[0].ss, l.step);
+      yrs.push(row);
+    }
+    const mon = months.map(m => hasStep ? [m.m, Math.ceil(m.m/12), m.fs, m.flat, m.ss, m.step] : [m.m, Math.ceil(m.m/12), m.fs, m.flat]);
+    const yHead = [{h:'Year'},{h:'Goal cost (inflated)',t:'inr'},{h:'Existing savings value',t:'inr'},{h:'Monthly SIP',t:'inr'},{h:'Corpus with SIP',t:'inr'}];
+    const mHead = [{h:'Month'},{h:'Year'},{h:'Monthly SIP',t:'inr'},{h:'Corpus with SIP',t:'inr'}];
+    if (hasStep){
+      yHead[3].h = 'Flat SIP / month'; yHead[4].h = 'Corpus (flat SIP)'; yHead.push({h:'Step-up SIP / month',t:'inr'},{h:'Corpus (step-up SIP)',t:'inr'});
+      mHead[2].h = 'Flat SIP'; mHead[3].h = 'Corpus (flat SIP)'; mHead.push({h:'Step-up SIP',t:'inr'},{h:'Corpus (step-up SIP)',t:'inr'});
+    }
+    const series = [{name:'Target (future cost)', color:GOLD, dash:true, data: Array(v.years+1).fill(g.fvCost)},
+                    {name: hasStep ? 'Corpus with flat SIP' : 'Corpus with monthly SIP', color:TEAL, data:[v.sav].concat(yrs.map(y => y[4]))}];
+    if (hasStep) series.push({name:'Corpus with step-up SIP', color:NAVY, data:[v.sav].concat(yrs.map(y => y[6]))});
+    const nm = esc(v.name);
+    const how = `
+      <p><b>Step 1 – Future cost:</b> today's cost grows at the inflation rate, compounded yearly.<br><code>=FV(${v.inf}%, ${v.years}, 0, -${v.cost})</code> → ${inr(g.fvCost)}</p>
+      <p><b>Step 2 – Existing savings:</b> these grow at the expected return, compounded monthly.<br><code>=FV(${v.rate}%/12, ${N}, 0, -${v.sav})</code> → ${inr(g.fvSav)}</p>
+      <p><b>Step 3 – Shortfall</b> = future cost − value of existing savings = ${inr(g.gap)}</p>
+      <p><b>Step 4 – Lumpsum needed today</b> to cover the shortfall:<br><code>=PV(${v.rate}%/12, ${N}, 0, -${Math.round(g.gap)})</code> → ${inr(g.lumpExtra)}</p>
+      <p><b>Step 5 – Monthly SIP needed</b> (start of month):<br><code>=PMT(${v.rate}%/12, ${N}, 0, -${Math.round(g.gap)}, 1)</code> → ${inr(g.sipFlat)}</p>
+      ${hasStep ? `<p><b>Step-up SIP:</b> the starting SIP is set so that a SIP rising by ${v.stepUp}% every 12 months reaches the shortfall. There is no single Excel function for this. To verify it, enter ${inr(g.sipStep)} with a ${v.stepUp}% step-up for ${v.years} years at ${v.rate}% in the <b>SIP Calculator</b>. The maturity value should equal ${inr(g.gap)}.</p>` : ''}`;
+    const kpis = [
+      {l:`Future cost of "${nm}"`, v:g.fvCost, f:`${inr(g.fvCost)} in ${v.years} yrs at ${v.inf}% inflation`},
+      {l:'Existing savings will grow to', v:g.fvSav},
+      {l:'Shortfall to be funded', v:g.gap},
+      {l:'Lumpsum needed today', v:g.lumpExtra, f:'One-time option (instead of SIP)'},
+      {l:'Monthly SIP needed', v:g.sipFlat, hl:true, f:inr(g.sipFlat) + ' flat for ' + v.years + ' yrs'}
+    ];
+    if (hasStep) kpis.push({l:'Step-up SIP (starting)', v:g.sipStep, f:`${inr(g.sipStep)}, rising ${v.stepUp}% yearly`});
+    return {
+      ok: g.gap === 0 ? `Existing savings are enough for "${nm}". They are projected to grow to ${inr(g.fvSav)}, which is ${inr(g.surplus)} more than the goal needs. No SIP is required.` : '',
+      kpis,
+      chart: {type:'line', labels: ['Y0'].concat(yrs.map(y => yrN(y[0]))), series},
+      tables: { year: {head: yHead, rows: yrs}, month: {head: mHead, rows: mon} },
+      how
+    };
+  }
+},
+
+/* ------------------------------ HOME LOAN ------------------------------ */
+home: {
+  title: 'Home Loan Calculator',
+  desc: 'EMI, total interest and full amortization schedule, plus the effect of extra EMIs, prepayments and interest rate changes.',
+  chartTitle: 'Year-wise payment split: principal, interest and prepayment',
+  chart2Title: 'Outstanding loan balance (year-end)',
+  fields: [
+    {id:'P',     label:'Loan amount', unit:'₹', min:100000, max:500000000, step:100000, sliderMax:30000000, val:5000000},
+    {id:'rate',  label:'Interest rate (p.a.)', unit:'%', min:1, max:20, step:0.05, val:8.5},
+    {id:'years', label:'Loan tenure', unit:'Years', min:1, max:30, step:1, val:20, int:true},
+    {id:'start', type:'month', label:'First EMI month', val:'2026-11'},
+    ...loanExtraFields(360, false)
+  ],
+  compute(v){ return loanCompute(v, v.P, null); }
+},
+
+/* ------------------------------ CAR / VEHICLE LOAN ------------------------------ */
+car: {
+  title: 'Car / Vehicle Loan Calculator',
+  desc: 'EMI, total interest and total cost of owning the vehicle, plus the effect of extra EMIs, prepayments and interest rate changes.',
+  chartTitle: 'Year-wise payment split: principal, interest and prepayment',
+  chart2Title: 'Outstanding loan balance (year-end)',
+  fields: [
+    {id:'price', label:'On-road price', unit:'₹', min:20000, max:100000000, step:10000, sliderMax:5000000, val:1200000},
+    {id:'down',  label:'Down payment', unit:'₹', min:0, max:100000000, step:10000, sliderMax:2000000, val:200000},
+    {id:'rate',  label:'Interest rate (p.a.)', unit:'%', min:1, max:25, step:0.05, val:9},
+    {id:'years', label:'Loan tenure', unit:'Years', min:1, max:8, step:1, val:5, int:true},
+    {id:'fee',   label:'Processing fee (% of loan)', unit:'%', min:0, max:5, step:0.05, val:0.5, opt:true},
+    {id:'start', type:'month', label:'First EMI month', val:'2026-11'},
+    ...loanExtraFields(96, true)
+  ],
+  compute(v){
+    if (v.down >= v.price) return {error:'Down payment must be less than the on-road price.'};
+    const P = v.price - v.down;
+    if (P < 10000) return {error:'Loan amount (on-road price − down payment) must be at least ₹10,000.'};
+    return loanCompute(v, P, {price: v.price, down: v.down, fee: P*v.fee/100, chg: v.chg});
+  }
+}
+};
+
+/* =====================================================================
+   SHARED LOAN LOGIC (Home & Car)
+   ===================================================================== */
+function loanExtraFields(maxM, car){
+  const f = [
+    {type:'head', label:'Extra EMIs & prepayment (optional)', note:'Leave at 0 if not needed.'},
+    {id:'extraEmis', label:'Extra EMIs paid every year', unit:'EMIs', min:0, max:12, step:1, sliderMax:6, val:0, int:true, opt:true},
+    {id:'annAmt', label:'Fixed prepayment every year', unit:'₹', min:0, max:100000000, step:10000, sliderMax:1000000, val:0, opt:true},
+    {id:'otAmt',  label:'One-time prepayment', unit:'₹', min:0, max:500000000, step:10000, sliderMax:5000000, val:0, opt:true},
+    {id:'otMonth',label:'One-time prepayment in EMI no.', unit:'Month', min:1, max:maxM, step:1, sliderMax:maxM, val:12, int:true},
+    {id:'mode',   type:'toggle', label:'Use prepayments to', options:[['tenure','Reduce tenure'],['emi','Reduce EMI']], val:'tenure'}
+  ];
+  if (car) f.push({id:'chg', label:'Prepayment / foreclosure charges', unit:'%', min:0, max:10, step:0.5, val:0, opt:true});
+  f.push(
+    {type:'head', label:'Interest rate change (optional)', note:'Enter + for a hike, − for a cut. Leave at 0 if not needed.'},
+    {id:'rcDelta', label:'Change in interest rate', unit:'% pts', min:-5, max:5, step:0.25, val:0, opt:true},
+    {id:'rcMonth', label:'Change applies from EMI no.', unit:'Month', min:1, max:maxM, step:1, sliderMax:maxM, val:13, int:true},
+    {id:'rcMode',  type:'toggle', label:'When the rate changes', options:[['tenure','Keep EMI, change tenure'],['emi','Keep tenure, change EMI']], val:'tenure'}
+  );
+  return f;
+}
+
+function loanCompute(v, P, car){
+  const n = v.years*12;
+  if (v.otAmt > 0 && v.otMonth > n) return {error:`One-time prepayment month must be within the loan tenure (1 to ${n}).`};
+  if (v.rcDelta !== 0 && v.rcMonth > n) return {error:`Rate change month must be within the loan tenure (1 to ${n}).`};
+  if (v.rate + v.rcDelta <= 0) return {error:'The new interest rate (current rate + change) must be above 0%.'};
+
+  const base = loanRun({P, rate: v.rate, n});
+  const hasPre = v.extraEmis > 0 || v.annAmt > 0 || v.otAmt > 0, hasRc = v.rcDelta !== 0, hasPlan = hasPre || hasRc;
+  const plan = hasPlan ? loanRun({P, rate: v.rate, n, extraEmis: v.extraEmis, annAmt: v.annAmt, otAmt: v.otAmt, otMonth: v.otMonth,
+                                  mode: v.mode, rcDelta: v.rcDelta, rcMonth: v.rcMonth, rcMode: v.rcMode}) : base;
+  const emi = base.emi0;
+  const fee = car ? car.fee : 0;
+
+  const kpis = [];
+  if (car) kpis.push({l:'Loan amount', v:P, f:`${inr(car.price)} − ${inr(car.down)} down payment`});
+  kpis.push(
+    {l:'Monthly EMI', v:emi, hl:true, f: inr(emi) + ' for ' + n + ' months'},
+    {l:'Total interest', v:base.totInt},
+    {l:'Total amount payable', v:P + base.totInt, f:'Principal + interest'}
+  );
+  if (car){
+    kpis.push({l:'Processing fee', v:fee, f: v.fee + '% of loan'},
+              {l:'Total cost of ownership', v:car.down + P + base.totInt + fee, f:'Down payment + EMIs + fee'});
+  } else kpis.push({l:'Loan closes', txt: mDate(v.start, base.months), f:'Last EMI (no prepayment)'});
+
+  let extra = '', warn = '';
+  if (hasPlan){
+    const saved = base.totInt - plan.totInt, cut = base.months - plan.months;
+    const charges = car ? plan.totPre * (car.chg || 0)/100 : 0;
+    const last = plan.rows.length > 1 ? plan.rows[plan.rows.length - 2].emi : plan.rows[0].emi;
+    const pk = [
+      {l:'Total interest (your plan)', v:plan.totInt},
+      {l: saved >= 0 ? 'Interest saved' : 'Extra interest', v:Math.abs(saved), cls: saved >= 0 ? 'good' : 'badk', f: saved >= 0 ? 'vs. regular EMIs only' : 'due to rate change'},
+      {l:'New tenure', txt: ym(plan.months), f: cut > 0 ? 'Shorter by ' + ym(cut) : cut < 0 ? 'Longer by ' + ym(-cut) : 'No change in tenure', cls: cut > 0 ? 'good' : cut < 0 ? 'badk' : ''},
+      {l:'Loan now closes', txt: mDate(v.start, plan.months), f: 'Instead of ' + mDate(v.start, base.months)}
+    ];
+    if (hasPre) pk.push({l:'Total prepaid', v:plan.totPre, f: v.extraEmis > 0 ? `Incl. ${v.extraEmis} extra EMI${v.extraEmis > 1 ? 's' : ''} (${inr(v.extraEmis*emi)}) every year` : ''});
+    if (Math.abs(last - emi) > 1) pk.push({l:'EMI after changes', v:last, f: (last > emi ? 'Up ' : 'Down ') + inr(Math.abs(last - emi)) + '/month', cls: last > emi ? 'badk' : 'good'});
+    if (car && charges > 0) pk.push({l:'Prepayment charges', v:charges, f:'Net saving ' + inr(saved - charges), cls: saved - charges >= 0 ? '' : 'badk'});
+    extra += `<div class="card"><div class="card-h"><h3>With your plan</h3></div>
+      <p class="sub">${[hasPre ? (v.mode === 'tenure' ? 'Prepayments used to reduce tenure' : 'Prepayments used to reduce EMI') : '',
+                         hasRc ? `rate ${v.rcDelta > 0 ? 'hike' : 'cut'} of ${Math.abs(v.rcDelta)}% from EMI no. ${v.rcMonth} (${mDate(v.start, v.rcMonth)}), ${v.rcMode === 'tenure' ? 'EMI kept same' : 'tenure kept same'}` : ''].filter(Boolean).join(' · ')}</p>
+      <div class="kpis" style="margin:0">${pk.map(kpiHTML).join('')}</div></div>`;
+    if (plan.negAm) warn = `At ${trim(v.rate + v.rcDelta)}%, the current EMI would not even cover the monthly interest, so the tenure cannot be extended. The calculator has increased the EMI instead (keeping the remaining tenure).`;
+  }
+
+  const xr = [];
+  for (let k = 0; k <= 6; k++){
+    const s = k === 0 ? base : loanRun({P, rate: v.rate, n, extraEmis: k, mode: 'tenure'});
+    xr.push({k, cls: k === v.extraEmis && k > 0 && !v.annAmt && !v.otAmt && !hasRc ? 'sel' : '',
+      c:[k === 0 ? 'None (regular EMIs only)' : `${k} extra EMI${k > 1 ? 's' : ''} / year`, k ? inr(k*emi) : '—', ym(s.months),
+         k ? ym(base.months - s.months) : '—', inr(s.totInt), k ? inr(base.totInt - s.totInt) : '—', mDate(v.start, s.months)],
+      raw:[k, k*emi, s.months, base.months - s.months, s.totInt, base.totInt - s.totInt]});
+  }
+  extra += `<div class="card"><div class="card-h"><h3>Extra EMI impact: how much tenure you save</h3></div>
+    <p class="sub">Extra EMIs are paid once a year (with every 12th EMI) and go fully towards principal. Regular EMI stays at ${inr(emi)}.</p>
+    <div class="tablewrap"><table><thead><tr><th>Extra EMIs paid</th><th>Extra paid per year</th><th>New tenure</th><th>Tenure reduced by</th><th>Total interest</th><th>Interest saved</th><th>Loan closes</th></tr></thead>
+    <tbody>${xr.map(x => `<tr class="${x.cls}">${x.c.map((c, i) => `<td${i === 3 || i === 5 ? (x.k ? ' class="down"' : '') : ''}>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>`;
+
+  const rcM = Math.min(v.rcMonth, n);
+  const deltas = [-1, -0.5, -0.25, 0.25, 0.5, 1, 1.5, 2].filter(d => v.rate + d > 0);
+  if (hasRc && !deltas.includes(v.rcDelta)) { deltas.push(v.rcDelta); deltas.sort((a, b) => a - b); }
+  const rr = deltas.map(d => {
+    const A = loanRun({P, rate: v.rate, n, rcDelta: d, rcMonth: rcM, rcMode: 'emi'});
+    const B = loanRun({P, rate: v.rate, n, rcDelta: d, rcMonth: rcM, rcMode: 'tenure'});
+    const newEmi = A.rcEmiNew, dEmi = newEmi - emi, dA = A.totInt - base.totInt;
+    const bOk = !B.negAm, dT = B.months - base.months, dB = B.totInt - base.totInt;
+    const sgn = x => (x > 0 ? '+' : x < 0 ? '−' : '') + inr(Math.abs(x)).replace('-', '');
+    return {d, sel: hasRc && d === v.rcDelta,
+      c:[(d > 0 ? '+' : '−') + Math.abs(d).toFixed(2) + '%', trim(v.rate + d) + '%', inr(newEmi), sgn(dEmi), sgn(dA),
+         bOk ? ym(B.months) + (B.months > 360 ? ' †' : '') : 'Not possible*', bOk ? (dT > 0 ? '+' : dT < 0 ? '−' : '') + ym(Math.abs(dT)) : '—', bOk ? sgn(dB) : '—'],
+      cls:[ '', '', '', dEmi > 0 ? 'up' : 'down', dA > 0 ? 'up' : 'down', '', dT > 0 ? 'up' : 'down', dB > 0 ? 'up' : 'down'],
+      raw:[d, v.rate + d, newEmi, dEmi, dA, bOk ? B.months : '', bOk ? dT : '', bOk ? dB : '']};
+  });
+  const anyNeg = rr.some(x => x.c[5] === 'Not possible*');
+  extra += `<div class="card"><div class="card-h"><h3>Interest rate change: impact on EMI and tenure</h3></div>
+    <p class="sub">Effect of a rate change from EMI no. ${rcM} (${mDate(v.start, rcM)}), when the outstanding loan is ${inr(base.rows[rcM-1].open)}. Current rate ${v.rate}%, EMI ${inr(emi)}. Change the month under "Interest rate change" in the inputs.</p>
+    <div class="tablewrap"><table><thead>
+      <tr><th rowspan="2">Rate change</th><th rowspan="2">New rate</th><th colspan="3" style="text-align:center;border-left:1px solid var(--line)">Option A: keep tenure, change EMI</th><th colspan="3" style="text-align:center;border-left:1px solid var(--line)">Option B: keep EMI, change tenure</th></tr>
+      <tr><th style="top:34px;border-left:1px solid var(--line)">New EMI</th><th style="top:34px">EMI change / month</th><th style="top:34px">Change in total interest</th><th style="top:34px;border-left:1px solid var(--line)">New total tenure</th><th style="top:34px">Tenure change</th><th style="top:34px">Change in total interest</th></tr></thead>
+    <tbody>${rr.map(x => `<tr class="${x.sel ? 'sel' : ''}">${x.c.map((c, i) => `<td class="${x.cls[i]}"${i === 2 || i === 5 ? ' style="border-left:1px solid var(--line)"' : ''}>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+    ${rr.some(x => /†/.test(x.c[5])) ? '<p class="sub" style="margin:8px 0 0">† Total tenure goes beyond 30 years. Most lenders would not extend this far and would raise the EMI instead.</p>' : ''}
+    ${anyNeg ? '<p class="sub" style="margin:8px 0 0">* At this rate the current EMI does not cover the monthly interest, so the lender would have to increase the EMI.</p>' : ''}
+    <p class="sub" style="margin:8px 0 0">For floating-rate loans, Indian banks usually extend the tenure first (Option B) and raise the EMI only if the tenure cannot be extended further (e.g., age limits). Most borrowers can ask the bank for either option.</p></div>`;
+
+  const rows = plan.rows, yrs = [];
+  for (let y = 1; y <= Math.ceil(rows.length/12); y++){
+    const ms = rows.slice((y-1)*12, y*12), l = ms[ms.length-1];
+    const s = k => ms.reduce((a, b) => a + b[k], 0);
+    yrs.push([y, mDate(v.start, ms[0].m) + ' – ' + mDate(v.start, l.m), ms[0].open, s('emi'), s('pr'), s('int'), s('pre'), l.bal, (1 - l.bal/P)*100]);
+  }
+  const mon = rows.map(x => [x.m, mDate(v.start, x.m), x.rate, x.open, x.emi, x.pr, x.int, x.pre, x.bal]);
+  const yHead = [{h:'Year'},{h:'Period',t:'txt'},{h:'Opening balance',t:'inr'},{h:'EMIs paid',t:'inr'},{h:'Principal',t:'inr'},{h:'Interest',t:'inr'},{h:'Prepayment',t:'inr'},{h:'Closing balance',t:'inr'},{h:'Loan repaid',t:'pct'}];
+  const mHead = [{h:'EMI no.'},{h:'Month',t:'txt'},{h:'Rate',t:'pct'},{h:'Opening balance',t:'inr'},{h:'EMI',t:'inr'},{h:'Principal',t:'inr'},{h:'Interest',t:'inr'},{h:'Prepayment',t:'inr'},{h:'Closing balance',t:'inr'}];
+
+  const series1 = [{name:'Principal (from EMIs)', color:NAVY, data: yrs.map(y => y[4])},
+                   {name:'Interest', color:GOLD, data: yrs.map(y => y[5])}];
+  if (hasPre) series1.push({name:'Prepayment / extra EMIs', color:TEAL, data: yrs.map(y => y[6])});
+  const nY = Math.ceil(Math.max(base.months, plan.months)/12), lab2 = ['Start'], bB = [P], bP = [P];
+  for (let y = 1; y <= nY; y++){
+    lab2.push(yrN(y));
+    bB.push(base.rows[Math.min(y*12, base.months) - 1].bal);
+    bP.push(plan.rows[Math.min(y*12, plan.months) - 1].bal);
+  }
+  const series2 = [{name: hasPlan ? 'Regular EMIs only' : 'Outstanding balance', color: hasPlan ? GREY : NAVY, dash: hasPlan, data: bB}];
+  if (hasPlan) series2.push({name:'With your plan', color:TEAL, data: bP});
+
+  const rcBal = base.rows[rcM-1].open, nr = (v.rate + (v.rcDelta || 0.5))/1200, left = n - rcM + 1;
+  const how = `
+    <p><b>EMI formula</b> (r = monthly rate = ${v.rate}% ÷ 12, n = ${n} months):</p>
+    <div class="fx">EMI = P × r × (1 + r)<sup>n</sup> ÷ ((1 + r)<sup>n</sup> − 1)</div>
+    <p><b>Excel check:</b> <code>=PMT(${v.rate}%/12, ${n}, -${Math.round(P)})</code> → ${inr2(emi)}</p>
+    <p><b>Each month:</b> interest = outstanding balance × r; principal = EMI − interest. Total interest: <code>=PMT(${v.rate}%/12,${n},-${Math.round(P)})*${n}-${Math.round(P)}</code> → ${inr(base.totInt)}</p>
+    <p><b>Extra EMIs:</b> k extra EMIs (k × ${inr(emi)}) are paid with every 12th EMI and reduce the principal directly. Because the EMI stays the same, the loan finishes earlier. The new tenure is found month by month; for a single prepayment you can check with <code>=NPER(${v.rate}%/12, -${Math.round(emi)}, balance after prepayment)</code>.</p>
+    <p><b>Reduce EMI option:</b> after each prepayment, EMI = <code>=PMT(rate/12, remaining months, -balance after prepayment)</code>.</p>
+    <p><b>Rate change from EMI no. ${rcM}:</b> outstanding then = ${inr(rcBal)}, remaining months = ${left}.<br>
+    Keep tenure → new EMI <code>=PMT(${trim(nr*1200)}%/12, ${left}, -${Math.round(rcBal)})</code> → ${inr(emiOf(nr, left, rcBal))}<br>
+    Keep EMI → months left <code>=NPER(${trim(nr*1200)}%/12, -${Math.round(emi)}, ${Math.round(rcBal)})</code>${emi > rcBal*nr ? ' → ' + trim(nperLoan(nr, emi, rcBal)) + ' (rounded up)' : ' → #NUM! (EMI does not cover interest)'}</p>
+    ${car ? `<p><b>Total cost of ownership</b> = down payment + total EMIs + processing fee = ${inr(car.down)} + ${inr(P + base.totInt)} + ${inr(fee)} = ${inr(car.down + P + base.totInt + fee)}. GST on the processing fee, insurance and registration are not included.</p>` : ''}`;
+
+  const words = {};
+  words.otMonth = v.otAmt > 0 ? mDate(v.start, v.otMonth) : '';
+  words.rcMonth = mDate(v.start, Math.min(v.rcMonth, n));
+  if (v.extraEmis > 0) words.extraEmis = inr(v.extraEmis*emi) + ' per year';
+
+  return {
+    warn, kpis, extra, words,
+    chart: {type:'bar', stacked:true, labels: yrs.map(y => yrN(y[0])), series: series1},
+    chart2: {type:'line', labels: lab2, series: series2},
+    tables: {year: {head: yHead, rows: yrs}, month: {head: mHead, rows: mon}},
+    csvExtra: [
+      {title:'EXTRA EMI IMPACT (paid once a year, reduce tenure)', head:['Extra EMIs per year','Extra paid per year','New tenure (months)','Tenure reduced (months)','Total interest','Interest saved'], rows: xr.map(x => x.raw)},
+      {title:`INTEREST RATE CHANGE FROM EMI NO. ${rcM}`, head:['Rate change (% pts)','New rate %','A: New EMI (same tenure)','A: EMI change','A: Change in total interest','B: New tenure months (same EMI)','B: Tenure change months','B: Change in total interest'], rows: rr.map(x => x.raw)}
+    ],
+    how
+  };
+}
+
+/* =====================================================================
+   CHART (hand-drawn on canvas – no internet / library needed)
+   ===================================================================== */
+function niceStep(raw){
+  const mag = Math.pow(10, Math.floor(Math.log10(raw))), n = raw/mag;
+  return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * mag;
+}
+function drawChart(cv, cfg){ cv._cfg = cfg; cv._hover = -1; renderChart(cv); }
+function renderChart(cv){
+  const cfg = cv._cfg; if (!cfg) return;
+  const W = cv.clientWidth, H = cv.clientHeight; if (!W) return;
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = W*dpr; cv.height = H*dpr;
+  const x = cv.getContext('2d'); x.setTransform(dpr,0,0,dpr,0,0); x.clearRect(0,0,W,H);
+  x.font = '12px "Segoe UI", Arial, sans-serif';
+  const fmt = cfg.fmt || axisFmt, tfmt = cfg.tfmt || short;
+  const n = cfg.labels.length;
+  let max = 0;
+  for (let i = 0; i < n; i++){
+    if (cfg.stacked){ let s = 0; cfg.series.forEach(se => s += Math.max(0, se.data[i])); max = Math.max(max, s); }
+    else cfg.series.forEach(se => max = Math.max(max, se.data[i]));
+  }
+  if (max <= 0) max = 1;
+  const step = niceStep(max/5), top = Math.ceil(max/step)*step;
+  let yw = 0; for (let v = 0; v <= top + 1e-9; v += step) yw = Math.max(yw, x.measureText(fmt(v)).width);
+  const P = {l: yw + 14, r: 14, t: 40, b: 28}, pw = W - P.l - P.r, ph = H - P.t - P.b;
+  const slot = pw/n;
+  const X = i => cfg.type === 'bar' ? P.l + slot*(i + 0.5) : P.l + (n === 1 ? pw/2 : pw*i/(n-1));
+  const Y = v => P.t + ph - (v/top)*ph;
+  cv._geom = {P, pw, slot, n, type: cfg.type};
+  x.textAlign = 'right'; x.textBaseline = 'middle';
+  for (let v = 0; v <= top + 1e-9; v += step){
+    const y = Y(v); x.strokeStyle = '#EDEFF2'; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(P.l, y); x.lineTo(W - P.r, y); x.stroke();
+    x.fillStyle = '#6B7280'; x.fillText(fmt(v), P.l - 6, y);
+  }
+  let lx = P.l, ly = 14; x.textAlign = 'left';
+  cfg.series.forEach(se => {
+    const tw = x.measureText(se.name).width;
+    if (lx + tw + 30 > W){ lx = P.l; ly += 18; }
+    x.fillStyle = se.color; x.fillRect(lx, ly - 5, 12, 10);
+    x.fillStyle = '#374151'; x.fillText(se.name, lx + 16, ly);
+    lx += tw + 34;
+  });
+  const lw = Math.max(46, ...cfg.labels.map(l => x.measureText(l).width + 12));
+  const every = Math.max(1, Math.ceil(n / Math.max(1, Math.floor(pw/lw))));
+  x.textAlign = 'center'; x.fillStyle = '#6B7280';
+  for (let i = 0; i < n; i++) if (i % every === 0) x.fillText(cfg.labels[i], X(i), H - P.b + 15);
+  const h = cv._hover;
+  if (cfg.type === 'bar'){
+    const bw = Math.min(46, slot*0.68);
+    if (h >= 0){ x.fillStyle = 'rgba(19,128,122,.08)'; x.fillRect(X(h) - slot/2, P.t, slot, ph); }
+    for (let i = 0; i < n; i++){
+      let base = 0;
+      cfg.series.forEach(se => {
+        const v = Math.max(0, se.data[i]);
+        x.fillStyle = se.color; x.fillRect(X(i) - bw/2, Y(base + v), bw, Y(base) - Y(base + v));
+        base += v;
+      });
+    }
+  } else {
+    cfg.series.forEach(se => {
+      x.strokeStyle = se.color; x.lineWidth = 2.5; x.setLineDash(se.dash ? [6,4] : []);
+      x.beginPath(); se.data.forEach((v,i) => i ? x.lineTo(X(i), Y(v)) : x.moveTo(X(i), Y(v))); x.stroke();
+    });
+    x.setLineDash([]);
+    if (h >= 0){
+      x.strokeStyle = '#9CA3AF'; x.lineWidth = 1; x.beginPath(); x.moveTo(X(h), P.t); x.lineTo(X(h), P.t + ph); x.stroke();
+      cfg.series.forEach(se => { x.fillStyle = se.color; x.beginPath(); x.arc(X(h), Y(se.data[h]), 4, 0, 7); x.fill(); });
+    }
+  }
+  if (h >= 0){
+    const lines = [cfg.tips ? cfg.tips[h] : cfg.labels[h]].concat(cfg.series.filter(se => !cfg.stacked || se.data[h]).map(se => se.name + ': ' + tfmt(se.data[h])));
+    if (cfg.stacked && cfg.series.length > 1) lines.push('Total: ' + tfmt(cfg.series.reduce((a,se)=>a+se.data[h],0)));
+    x.font = '12px "Segoe UI", Arial, sans-serif';
+    const bw = Math.max(...lines.map(l => x.measureText(l).width)) + 20, bh = lines.length*18 + 10;
+    let bx = X(h) + 12; if (bx + bw > W - 4) bx = X(h) - bw - 12; if (bx < 4) bx = 4;
+    const by = P.t + 6;
+    x.fillStyle = 'rgba(11,37,69,.94)'; x.beginPath();
+    if (x.roundRect) x.roundRect(bx, by, bw, bh, 6); else x.rect(bx, by, bw, bh); x.fill();
+    x.fillStyle = '#fff'; x.textAlign = 'left'; x.textBaseline = 'top';
+    lines.forEach((l,i) => { x.font = (i ? '' : 'bold ') + '12px "Segoe UI", Arial, sans-serif'; x.fillText(l, bx + 10, by + 7 + i*18); });
+  }
+}
+function attachHover(cv){
+  cv.addEventListener('pointermove', e => {
+    const g = cv._geom; if (!g) return;
+    const px = e.clientX - cv.getBoundingClientRect().left - g.P.l;
+    let i = g.type === 'bar' ? Math.floor(px/g.slot) : Math.round(px/g.pw*(g.n-1));
+    i = Math.max(0, Math.min(g.n - 1, i));
+    if (i !== cv._hover){ cv._hover = i; renderChart(cv); }
+  });
+  cv.addEventListener('pointerleave', () => { cv._hover = -1; renderChart(cv); });
+}
+
+/* =====================================================================
+   UI BUILDING
+   ===================================================================== */
+const state = {}, view = {};
+function disp(f, x){ return f.unit === '₹' ? inr(x) : x + ' ' + f.unit; }
+const isInput = f => f.type !== 'head';
+const DATE_RE = {month: /^\d{4}-\d{2}$/, date: /^\d{4}-\d{2}-\d{2}$/};
+
+function fieldHTML(cid, f){
+  const id = cid + '-' + f.id;
+  const note = f.note ? `<div class="fnote">${f.note}</div>` : '';
+  if (f.type === 'head') return `<div class="fhead">${f.label}${f.note ? `<span>${f.note}</span>` : ''}</div>`;
+  if (f.type === 'toggle')
+    return `<div class="field" id="${id}-fw"><label>${f.label}</label><div class="toggle" id="${id}" data-val="${f.val}">` +
+      f.options.map(o => `<button type="button" data-v="${o[0]}" class="${o[0] === f.val ? 'on' : ''}">${o[1]}</button>`).join('') + `</div>${note}</div>`;
+  if (f.type === 'select')
+    return `<div class="field" id="${id}-fw"><label for="${id}">${f.label}</label><div class="row" id="${id}-box"><select id="${id}">` +
+      f.options.map(o => `<option value="${o[0]}"${o[0] === f.val ? ' selected' : ''}>${o[1]}</option>`).join('') + `</select></div>${note}</div>`;
+  if (f.type === 'text' || f.type === 'month' || f.type === 'date')
+    return `<div class="field" id="${id}-fw"><label for="${id}">${f.label}</label><div class="row" id="${id}-box"><input type="${f.type}" id="${id}" value="${esc(f.val)}" maxlength="60"></div>${note}<div class="words" id="${id}-w"></div><div class="err" id="${id}-e"></div></div>`;
+  const smax = f.sliderMax ?? f.max;
+  return `<div class="field" id="${id}-fw">
+    <label for="${id}"><span>${f.label}</span><span class="unit">${f.unit === '₹' ? '' : f.unit}</span></label>
+    <div class="row" id="${id}-box">${f.unit === '₹' ? '<span class="pre">₹</span>' : ''}<input type="number" id="${id}" value="${f.val}" min="${f.min}" max="${f.max}" step="any" inputmode="decimal"></div>
+    ${f.noSlider ? '' : `<input type="range" id="${id}-r" min="${f.min}" max="${smax}" step="${f.step}" value="${Math.min(f.val, smax)}">`}
+    ${note}
+    <div class="words" id="${id}-w"></div><div class="err" id="${id}-e"></div></div>`;
+}
+
+function wireFields(cid, fields, cb){
+  fields.filter(isInput).forEach(f => {
+    const id = cid + '-' + f.id;
+    if (f.type === 'toggle'){
+      const t = document.getElementById(id);
+      t.querySelectorAll('button').forEach(b => b.onclick = () => {
+        t.dataset.val = b.dataset.v;
+        t.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+        cb();
+      });
+      return;
+    }
+    if (f.type === 'select'){ document.getElementById(id).addEventListener('change', cb); return; }
+    if (f.type === 'text' || f.type === 'month' || f.type === 'date'){ const el = document.getElementById(id); el.addEventListener('input', cb); el.addEventListener('change', cb); return; }
+    const num = document.getElementById(id), rng = document.getElementById(id + '-r');
+    if (rng){
+      num.addEventListener('input', () => { if (num.value !== '') rng.value = num.value; cb(); });
+      rng.addEventListener('input', () => { num.value = rng.value; cb(); });
+    } else num.addEventListener('input', cb);
+  });
+}
+function kpiHTML(k){
+  return `<div class="kpi${k.hl ? ' hl' : ''}${k.cls ? ' ' + k.cls : ''}"><div class="l">${k.l}</div><div class="v">${k.txt ?? short(k.v)}</div><div class="f">${k.f ?? (k.v !== undefined ? inr(k.v) : '')}</div></div>`;
+}
+function download(lines, name){
+  const blob = new Blob(['\ufeff' + lines.join('\r\n')], {type: 'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+function cell(x, t){
+  if (x === '' || x === null || x === undefined) return '';
+  if (t === 'inr') return inr(x);
+  if (t === 'inr2') return inr2(x);
+  if (t === 'pct') return (+x).toFixed(2) + '%';
+  if (t === 'num') return (+x).toFixed(4);
+  if (t === 'n2') return (+x).toFixed(2);
+  return x;
+}
+// show / hide fields that depend on another field (showIf: {f:'fieldId', v:['value', ...]})
+function ctrlVal(cid, fid){ const t = document.getElementById(cid + '-' + fid); return !t ? undefined : t.tagName === 'SELECT' ? t.value : t.dataset.val; }
+function fieldShown(cid, f){ return !f.showIf || [].concat(f.showIf.v).includes(ctrlVal(cid, f.showIf.f)); }
+function applyShowIf(cid, fields){
+  fields.filter(f => f.showIf).forEach(f => {
+    const w = document.getElementById(cid + '-' + f.id + '-fw');
+    if (w) w.style.display = fieldShown(cid, f) ? '' : 'none';
+  });
+}
+
+function build(){
+  const main = document.getElementById('main');
+  Object.entries(CALCS).forEach(([cid, c], idx) => {
+    view[cid] = c.defaultView || 'year';
+    const sec = document.createElement('section');
+    sec.className = 'calc' + (idx === 0 ? ' active' : ''); sec.id = 'calc-' + cid;
+    sec.innerHTML = `
+      <h2>${c.title}</h2><p class="desc">${c.desc}</p>
+      <div class="print-only" style="margin-bottom:10px;color:#6B7280">Prepared on ${new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</div>
+      <div class="grid">
+        <div class="card"><div class="card-h"><h3>Inputs</h3></div>
+          ${c.fields.map(f => fieldHTML(cid, f)).join('')}
+          <div class="hint no-print" id="${cid}-hint" style="display:none"></div>
+        </div>
+        <div id="${cid}-out">
+          <div id="${cid}-results"></div>
+          <div id="${cid}-body">
+            <div id="${cid}-extra"></div>
+            <div class="card"><div class="card-h"><h3 id="${cid}-ctitle">${c.chartTitle}</h3></div><canvas id="${cid}-chart"></canvas></div>
+            ${c.chart2Title ? `<div class="card"><div class="card-h"><h3>${c.chart2Title}</h3></div><canvas id="${cid}-chart2"></canvas></div>` : ''}
+            <div class="card">
+              <div class="card-h"><h3 id="${cid}-ttitle">${c.tableTitle || (c.chart2Title ? 'Amortization schedule' : 'Detailed schedule')}</h3>
+                <div class="actions">
+                  ${c.noMonth ? '' : `<div class="seg" id="${cid}-seg"><button data-v="year">Year-wise</button><button data-v="month">Month-wise</button></div>`}
+                  <button class="btn" data-act="csv">Export to Excel (CSV)</button>
+                  <button class="btn primary" data-act="print">Print / Save as PDF</button>
+                </div>
+              </div>
+              <div class="tablewrap"><table id="${cid}-table"${c.wrapTable ? ' class="wrap"' : ''}></table></div>
+            </div>
+            <div id="${cid}-extra2"></div>
+            <details class="card how" id="${cid}-details"><summary>How this is calculated</summary><div class="how-body" id="${cid}-how"></div></details>
+          </div>
+        </div>
+      </div>`;
+    main.appendChild(sec);
+    wireFields(cid, c.fields, () => run(cid));
+    const seg = document.getElementById(cid + '-seg');
+    if (seg) seg.querySelectorAll('button').forEach(b => {
+      b.classList.toggle('on', b.dataset.v === view[cid]);
+      b.onclick = () => { view[cid] = b.dataset.v; seg.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); renderTable(cid); };
+    });
+    sec.querySelector('[data-act=csv]').onclick = () => exportCSV(cid);
+    sec.querySelector('[data-act=print]').onclick = () => window.print();
+    attachHover(document.getElementById(cid + '-chart'));
+    if (c.chart2Title) attachHover(document.getElementById(cid + '-chart2'));
+    run(cid);
+  });
+}
+
+function readVals(cid){ return readFields(cid, CALCS[cid].fields); }
+function readFields(cid, fields){
+  const v = {}; let ok = true;
+  applyShowIf(cid, fields);
+  fields.filter(isInput).forEach(f => {
+    const id = cid + '-' + f.id;
+    if (f.type === 'toggle'){ v[f.id] = document.getElementById(id).dataset.val; return; }
+    if (f.type === 'select'){ v[f.id] = document.getElementById(id).value; return; }
+    if (!fieldShown(cid, f)){ v[f.id] = f.hiddenVal !== undefined ? f.hiddenVal : f.val; return; }
+    if (f.type === 'text'){ v[f.id] = document.getElementById(id).value.trim() || 'My goal'; return; }
+    if (f.type === 'month' || f.type === 'date'){
+      const val = document.getElementById(id).value, bad = !DATE_RE[f.type].test(val);
+      document.getElementById(id + '-box').classList.toggle('bad', bad);
+      document.getElementById(id + '-e').textContent = bad ? 'Please select a ' + (f.type === 'month' ? 'month.' : 'date.') : '';
+      if (bad) ok = false;
+      v[f.id] = val; return;
+    }
+    const el = document.getElementById(id), x = (f.opt && el.value.trim() === '') ? 0 : parseFloat(el.value);
+    let msg = '';
+    if ((!f.opt && el.value.trim() === '') || isNaN(x)) msg = 'Please enter a number.';
+    else if (x < f.min || x > f.max) msg = `Enter a value between ${disp(f, f.min)} and ${disp(f, f.max)}.`;
+    else if (f.int && !Number.isInteger(x)) msg = 'Please enter a whole number.';
+    document.getElementById(id + '-box').classList.toggle('bad', !!msg);
+    document.getElementById(id + '-e').textContent = msg;
+    document.getElementById(id + '-w').textContent = (f.unit === '₹' && !msg && x) ? inr(x) + (Math.abs(x) >= 1e5 ? '  (' + short(x) + ')' : '') : '';
+    if (msg) ok = false;
+    v[f.id] = x;
+  });
+  return ok ? v : null;
+}
+
+function run(cid){
+  const c = CALCS[cid], res = document.getElementById(cid + '-results'), body = document.getElementById(cid + '-body');
+  const hint = document.getElementById(cid + '-hint');
+  const v = readVals(cid);
+  if (!v){ res.innerHTML = '<div class="alert">Please correct the highlighted input(s) to see results.</div>'; body.classList.add('stale'); return; }
+  const o = c.compute(v);
+  if (o.error){ res.innerHTML = `<div class="alert">${o.error}</div>`; body.classList.add('stale'); return; }
+  body.classList.remove('stale');
+  o.vals = v; state[cid] = o;
+  hint.style.display = o.hint ? '' : 'none'; hint.innerHTML = o.hint || '';
+  if (o.words) Object.entries(o.words).forEach(([k, t]) => { const el = document.getElementById(cid + '-' + k + '-w'); if (el) el.textContent = t; });
+  res.innerHTML = (o.warn ? `<div class="alert warn">⚠ ${o.warn}</div>` : '') + (o.ok ? `<div class="alert ok">✓ ${o.ok}</div>` : '') +
+    '<div class="kpis">' + o.kpis.map(kpiHTML).join('') + '</div>';
+  document.getElementById(cid + '-extra').innerHTML = o.extra || '';
+  document.getElementById(cid + '-extra2').innerHTML = o.extra2 || '';
+  if (o.chartTitle) document.getElementById(cid + '-ctitle').textContent = o.chartTitle;
+  drawChart(document.getElementById(cid + '-chart'), o.chart);
+  if (o.chart2) drawChart(document.getElementById(cid + '-chart2'), o.chart2);
+  renderTable(cid);
+  document.getElementById(cid + '-how').innerHTML = o.how;
+}
+
+function renderTable(cid){
+  const o = state[cid]; if (!o) return;
+  const t = o.tables[view[cid]] || o.tables.year;
+  document.getElementById(cid + '-table').innerHTML =
+    '<thead><tr>' + t.head.map(h => `<th>${h.h}</th>`).join('') + '</tr></thead><tbody>' +
+    t.rows.map(r => `<tr${r._cls ? ` class="${r._cls}"` : ''}>` + r.map((x,i) => `<td>${cell(x, t.head[i].t)}</td>`).join('') + '</tr>').join('') + '</tbody>';
+}
+
+function exportCSV(cid){
+  const o = state[cid]; if (!o) return;
+  const c = CALCS[cid], t = o.tables[view[cid]] || o.tables.year;
+  const q = s => '"' + String(s).replace(/"/g, '""') + '"';
+  const num = x => typeof x === 'number' ? x.toFixed(2) : q(x);
+  const unesc = s => String(s).replace(/<[^>]+>/g, '').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+  const firm = document.getElementById('firmName').textContent.trim();
+  const L = [q(firm + ' - ' + c.title), q('Prepared on ' + new Date().toLocaleDateString('en-IN')), '', q('INPUTS')];
+  c.fields.filter(isInput).filter(f => fieldShown(cid, f)).forEach(f => {
+    let val = o.vals[f.id];
+    if (f.type === 'toggle' || f.type === 'select') val = f.options.find(p => p[0] === val)[1];
+    L.push(q(f.label + (f.unit ? ' (' + (f.unit === '₹' ? 'Rs' : f.unit) + ')' : '')) + ',' + q(val));
+  });
+  L.push('', q('RESULTS'));
+  o.kpis.forEach(k => L.push(q(unesc(k.l)) + ',' + (k.txt !== undefined ? q(unesc(k.txt)) : k.v.toFixed(2))));
+  (o.csvExtra || []).forEach(s => {
+    L.push('', q(s.title), s.head.map(q).join(','));
+    s.rows.forEach(r => L.push(r.map(num).join(',')));
+  });
+  L.push('', q((c.noMonth ? (c.tableTitle || 'SCHEDULE').toUpperCase() : (view[cid] === 'year' ? 'YEAR-WISE' : 'MONTH-WISE') + ' SCHEDULE') + ' (amounts in Rs)'));
+  L.push(t.head.map(h => q(h.h)).join(','));
+  t.rows.forEach(r => L.push(r.map((x,i) => (x === '' || x === null) ? '' : (['inr','inr2','pct','n2'].includes(t.head[i].t) ? (+x).toFixed(2) : t.head[i].t === 'num' ? (+x).toFixed(6) : (typeof x === 'string' ? q(unesc(x)) : x))).join(',')));
+  L.push('', q(c.csvNote || (['home','car','bond'].includes(cid) ? 'Figures are indicative; actual terms are as per the lender / issuer documents.' : 'Returns are illustrative and not guaranteed. Mutual fund investments are subject to market risks.')));
+  download(L, `${c.title.replace(/[\s\/]+/g, '_')}${c.noMonth ? '' : '_' + (view[cid] === 'year' ? 'Yearwise' : 'Monthwise')}.csv`);
+}
+
+/* =====================================================================
+   PHASE 4 – BOND, COMPOUND INTEREST, HOLDING PERIOD RETURN, RULE OF 72
+   ===================================================================== */
+const pct = (x, d = 2) => (x*100).toFixed(d) + '%';
+const fmtD = s => { const o = typeof s === 'string' ? pd(s) : s; return new Date(o.y, o.m - 1, o.d).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}); };
+const shD = o => new Date(o.y, o.m - 1, o.d).toLocaleDateString('en-IN', {month:'short', year:'2-digit'});
+const xD = s => { const o = pd(s); return `DATE(${o.y},${o.m},${o.d})`; };
+const plain = v => trim(v);
+
+Object.assign(CALCS, {
+
+/* ------------------------------ BOND CALCULATOR ------------------------------ */
+bond: {
+  title: 'Bond Calculator',
+  desc: 'Yield to maturity, yield to call, price, accrued interest, duration and convexity for a fixed-coupon bond. Results match Excel\'s YIELD, PRICE, DURATION and MDURATION functions.',
+  chartTitle: 'Cash flows you will receive (your holding)',
+  chart2Title: 'Price–yield curve (clean price per ₹100 face value)',
+  tableTitle: 'Cash flow schedule (your holding)',
+  noMonth: true,
+  fields: [
+    {id:'face', label:'Face value per bond', unit:'₹', min:1, max:100000000, step:100, sliderMax:1000000, val:1000},
+    {id:'qty',  label:'Number of bonds', unit:'Bonds', min:1, max:10000000, step:1, sliderMax:10000, val:100, int:true},
+    {id:'rate', label:'Coupon rate (p.a.)', unit:'%', min:0, max:30, step:0.05, val:8.5},
+    {id:'freq', type:'toggle', label:'Coupon frequency', options:[['1','Annual'],['2','Half-yearly'],['4','Quarterly'],['12','Monthly']], val:'1'},
+    {id:'settle', type:'date', label:'Settlement (purchase) date', val:'2026-10-21'},
+    {id:'mat',    type:'date', label:'Maturity date', val:'2031-06-30', note:'Coupons are assumed to fall on the same day of the month as maturity.'},
+    {id:'basis', type:'toggle', label:'Day count convention', options:[['1','Actual/Actual'],['3','Actual/365'],['0','30/360']], val:'1',
+      note:'Indian corporate bonds: usually Actual/Actual. G-Secs / SDLs: 30/360 with half-yearly coupons.'},
+    {type:'head', label:'Price or yield'},
+    {id:'mode', type:'toggle', label:'What do you know?', options:[['price','Market price → find YTM'],['yield','YTM → find price']], val:'price'},
+    {id:'px',  label:'Clean price (per ₹100 face value)', unit:'₹', min:1, max:300, step:0.05, sliderMax:150, val:101.5, showIf:{f:'mode', v:'price'},
+      note:'Quoted price without accrued interest. E.g., 101.50 means ₹1,015 for a ₹1,000 bond.'},
+    {id:'ytm', label:'Yield to maturity (YTM)', unit:'%', min:0.01, max:50, step:0.05, sliderMax:20, val:8, showIf:{f:'mode', v:'yield'}},
+    {type:'head', label:'Call option (optional)', note:'Use if the issuer can redeem the bond early.'},
+    {id:'callable', type:'toggle', label:'Is the bond callable?', options:[['no','Not callable'],['yes','Callable']], val:'no'},
+    {id:'callDate', type:'date', label:'Call date', val:'2029-06-30', showIf:{f:'callable', v:'yes'}},
+    {id:'callPx', label:'Call price (per ₹100 face value)', unit:'₹', min:50, max:200, step:0.25, sliderMax:110, val:100, showIf:{f:'callable', v:'yes'}}
+  ],
+  compute(v){
+    const st = pd(v.settle), mt = pd(v.mat), f = +v.freq, basis = +v.basis, R = v.rate/100;
+    if (toT(mt) <= toT(st)) return {error:'Maturity date must be after the settlement date.'};
+    const call = v.callable === 'yes';
+    if (call && (toT(pd(v.callDate)) <= toT(st) || toT(pd(v.callDate)) >= toT(mt))) return {error:'Call date must be after the settlement date and before the maturity date.'};
+    const c = coupInfo(st, mt, f, basis), b = {c, f, rate: R, red: 100};
+    let y, clean;
+    if (v.mode === 'price'){ clean = v.px; y = xlYIELD(b, clean); if (!isFinite(y)) return {error:'No yield could be found for this price. Please check the price and coupon inputs.'}; }
+    else { y = v.ytm/100; clean = bondPx(y, b); }
+    const acc = 100*R/f*c.A/c.E, dirty = clean + acc, k = v.face/100, hold = k*v.qty;
+    const dur = bondDur(y, b), cy = clean > 0 ? R*100/clean : 0;
+    const yrsLeft = actD(st, mt)/365;
+    let ytc = null;
+    if (call){
+      const cc = coupInfo(st, pd(v.callDate), f, basis);
+      ytc = xlYIELD({c: cc, f, rate: R, red: v.callPx}, clean);
+    }
+    const freqW = ({1:'annual',2:'half-yearly',4:'quarterly',12:'monthly'})[f];
+
+    const kpis = [];
+    if (v.mode === 'price') kpis.push({l:'Yield to maturity (YTM)', txt: pct(y, 3), hl:true, f:`At clean price ${clean.toFixed(2)}`});
+    else kpis.push({l:'Clean price per bond', txt: inr2(clean*k), hl:true, f:`${clean.toFixed(4)} per ₹100 face`});
+    if (v.mode === 'price') kpis.push({l:'Clean price per bond', txt: inr2(clean*k), f:`${clean.toFixed(2)} per ₹100 · ${clean > 100.0001 ? 'premium' : clean < 99.9999 ? 'discount' : 'at par'}`});
+    kpis.push(
+      {l:'Current yield', txt: pct(cy), f:'Annual coupon ÷ clean price'},
+      {l:'Accrued interest per bond', txt: inr2(acc*k), f:`${c.A} days since last coupon (${fmtD(c.pcd)})`},
+      {l:'Dirty price per bond', txt: inr2(dirty*k), f:'Clean price + accrued interest'},
+      {l:'Total amount payable', v: dirty*hold, f:`${NF.format(v.qty)} bonds incl. ${inr(acc*hold)} accrued interest`},
+      {l:'Macaulay duration', txt: dur.mac.toFixed(3) + ' yrs', f:`Remaining term ${yrsLeft.toFixed(2)} yrs`},
+      {l:'Modified duration', txt: dur.mod.toFixed(3), f:`Price moves ≈ ${dur.mod.toFixed(2)}% for a 1% change in yield`},
+      {l:'Convexity', txt: dur.conv.toFixed(2), f:'Higher = more cushion when yields move'}
+    );
+    if (call){
+      kpis.push({l:'Yield to call (YTC)', txt: isFinite(ytc) ? pct(ytc, 3) : 'n/a', cls: isFinite(ytc) && ytc < y ? 'badk' : '', f:`If called on ${fmtD(v.callDate)} at ${v.callPx}`},
+                {l:'Yield to worst', txt: pct(isFinite(ytc) ? Math.min(y, ytc) : y, 3), f: isFinite(ytc) && ytc < y ? 'Call scenario is worse' : 'Maturity scenario is worse'});
+    }
+
+    const cpn = 100*R/f;
+    let sc = 0, sp = 0, spv = 0;
+    const rows = c.dates.map((d, i) => {
+      const t = (i + c.DSC/c.E)/f, last = i === c.N - 1, cf = (cpn + (last ? 100 : 0))*hold, df = 1/Math.pow(1 + y/f, i + c.DSC/c.E), pv = cf*df;
+      sc += cpn*hold; sp += last ? 100*hold : 0; spv += pv;
+      return [i + 1, fmtD(d), cpn*hold, last ? 100*hold : 0, cf, t, df, pv];
+    });
+    const tot = ['Total', '', sc, sp, sc + sp, '', '', spv]; tot._cls = 'tot';
+    rows.push(tot);
+
+    const shifts = [-2, -1, -0.5, -0.25, 0.25, 0.5, 1, 2].filter(d => y*100 + d > 0.05);
+    const sens = shifts.map(d => {
+      const ny = y + d/100, nc = bondPx(ny, b), nd = nc + acc, ch = (nd - dirty)/dirty;
+      const est1 = -dur.mod*d/100, est2 = est1 + 0.5*dur.conv*Math.pow(d/100, 2);
+      return [d, ny, nc, nd*hold, (nd - dirty)*hold, ch, est1, est2];
+    });
+    const sg = x => (x > 0 ? '+' : '');
+    let extra = `<div class="card"><div class="card-h"><h3>Interest rate sensitivity: what happens if yields move</h3></div>
+      <p class="sub">Value of your holding today is ${inr(dirty*hold)} at a YTM of ${pct(y)}. Bond prices fall when yields rise, and rise when yields fall. Duration and convexity estimate the move.</p>
+      <div class="tablewrap"><table><thead><tr><th>Yield change</th><th>New YTM</th><th>New clean price</th><th>New value of holding</th><th>Change in value</th><th>Actual % change</th><th>Estimate (duration)</th><th>Estimate (duration + convexity)</th></tr></thead><tbody>
+      ${sens.map(s => `<tr><td>${sg(s[0])}${s[0].toFixed(2)}%</td><td>${pct(s[1])}</td><td>${s[2].toFixed(2)}</td><td>${inr(s[3])}</td><td class="${s[4] < 0 ? 'up' : 'down'}">${s[4] < 0 ? '−' : '+'}${inr(Math.abs(s[4]))}</td><td class="${s[5] < 0 ? 'up' : 'down'}">${sg(s[5])}${pct(s[5])}</td><td>${sg(s[6])}${pct(s[6])}</td><td>${sg(s[7])}${pct(s[7])}</td></tr>`).join('')}
+      </tbody></table></div>
+      <p class="sub" style="margin:8px 0 0">Duration alone slightly overstates losses and understates gains. Adding convexity brings the estimate close to the actual change.</p></div>`;
+    if (call && isFinite(ytc)) extra = `<div class="alert ${ytc < y ? 'warn' : 'ok'}" style="font-weight:500">${ytc < y
+      ? `⚠ The yield to call (${pct(ytc)}) is lower than the YTM (${pct(y)}). Because the bond trades above the call price, the issuer is likely to call it if rates stay low. Use the <b>yield to worst (${pct(ytc)})</b> when comparing with other bonds.`
+      : `✓ The YTM (${pct(y)}) is lower than the yield to call (${pct(ytc)}), so the maturity scenario is the conservative one. Yield to worst = ${pct(y)}.`}</div>` + extra;
+
+    const ch1 = {type:'bar', stacked:true, labels: c.dates.map(shD),
+      series:[{name:'Coupon', color:TEAL, data: c.dates.map(() => cpn*hold)},
+              {name:'Principal repayment', color:NAVY, data: c.dates.map((d, i) => i === c.N - 1 ? 100*hold : 0)}]};
+    const yl = [], yp = [];
+    for (let d = -3; d <= 3.0001; d += 0.25){ const ny = y + d/100; if (ny <= 0.0005) continue; yl.push(pct(ny)); yp.push(bondPx(ny, b)); }
+    const ch2 = {type:'line', labels: yl, fmt: plain, tfmt: x => x.toFixed(2),
+      series:[{name:'Clean price', color:NAVY, data: yp}, {name:'Par (100)', color:GOLD, dash:true, data: yp.map(() => 100)}]};
+
+    const dS = xD(v.settle), dM = xD(v.mat), Rp = v.rate + '%', yP = trim(y*100*1e4)/1e4 + '%';
+    const how = `
+      <p><b>Excel checks</b> (all per ₹100 of face value; multiply by ${trim(k)} for one bond):</p>
+      <div class="fx">${v.mode === 'price' ? `YTM: =YIELD(${dS}, ${dM}, ${Rp}, ${clean}, 100, ${f}, ${basis}) → ${pct(y, 4)}` : `Clean price: =PRICE(${dS}, ${dM}, ${Rp}, ${v.ytm}%, 100, ${f}, ${basis}) → ${clean.toFixed(4)}`}<br>
+      Accrued interest: =100*${Rp}/${f}*COUPDAYBS(${dS}, ${dM}, ${f}, ${basis})/COUPDAYS(${dS}, ${dM}, ${f}, ${basis}) → ${acc.toFixed(4)}<br>
+      Macaulay duration: =DURATION(${dS}, ${dM}, ${Rp}, ${yP}, ${f}, ${basis}) → ${dur.mac.toFixed(4)}<br>
+      Modified duration: =MDURATION(${dS}, ${dM}, ${Rp}, ${yP}, ${f}, ${basis}) → ${dur.mod.toFixed(4)}
+      ${call ? `<br>Yield to call: =YIELD(${dS}, ${xD(v.callDate)}, ${Rp}, ${clean.toFixed(4)}, ${v.callPx}, ${f}, ${basis}) → ${isFinite(ytc) ? pct(ytc, 4) : '#NUM!'}` : ''}</div>
+      <p><b>YTM</b> is the single rate that makes the present value of all remaining coupons and the principal equal to the dirty price you pay. It is found by iteration, like Excel. It assumes you hold to maturity and reinvest coupons at the same rate.</p>
+      <p><b>Yield to call</b> is the same calculation, but the bond is assumed to be redeemed on the call date at the call price.</p>
+      <p><b>Accrued interest</b> = coupon per period × (days since last coupon ÷ days in the coupon period) = ${trim(cpn)} × ${c.A}/${trim(c.E)}. The buyer pays this to the seller and gets it back with the next full coupon on ${fmtD(c.ncd)}.</p>
+      <p><b>Macaulay duration</b> = weighted average time (in years) to receive the cash flows, weighted by their present values. <b>Modified duration</b> = Macaulay ÷ (1 + YTM/${f}) – the % price change for a 1% change in yield.</p>
+      <p><b>Price sensitivity estimate:</b> % change ≈ −Modified duration × Δy + ½ × Convexity × Δy².</p>
+      <p><b>Day count:</b> ${({1:'Actual/Actual – actual days, actual coupon period length',3:'Actual/365 – actual days, 365-day year',0:'30/360 – every month treated as 30 days (US/NASD method, Excel basis 0)'})[basis]}. Coupons are ${freqW}. Tax and transaction costs are not included.</p>`;
+
+    return {
+      kpis, extra, how,
+      hint: `${c.N} coupon${c.N > 1 ? 's' : ''} remaining. Next coupon: ${fmtD(c.ncd)}.`,
+      chart: ch1, chart2: ch2,
+      tables: {year: {head:[{h:'No.'},{h:'Date',t:'txt'},{h:'Coupon',t:'inr2'},{h:'Principal',t:'inr2'},{h:'Total cash flow',t:'inr2'},{h:'Years from settlement',t:'num'},{h:'Discount factor',t:'num'},{h:'Present value',t:'inr2'}], rows}},
+      csvExtra: [{title:'INTEREST RATE SENSITIVITY', head:['Yield change (% pts)','New YTM %','New clean price','New value of holding','Change in value','Actual % change','Duration estimate %','Duration + convexity estimate %'],
+        rows: sens.map(s => [s[0], s[1]*100, s[2], s[3], s[4], s[5]*100, s[6]*100, s[7]*100])}]
+    };
+  }
+},
+
+/* ------------------------------ COMPOUND INTEREST ------------------------------ */
+ci: {
+  title: 'Compound Interest Calculator',
+  desc: 'See how a deposit grows when interest is earned on interest, and how the compounding frequency changes the result.',
+  chartTitle: 'Principal and accumulated interest (year-end)',
+  chart2Title: 'Compound interest vs. simple interest',
+  tableTitle: 'Year-wise growth',
+  noMonth: true,
+  fields: [
+    {id:'P',     label:'Principal amount', unit:'₹', min:100, max:10000000000, step:10000, sliderMax:10000000, val:100000},
+    {id:'rate',  label:'Interest rate (p.a.)', unit:'%', min:0.01, max:50, step:0.05, sliderMax:20, val:7.5},
+    {id:'years', label:'Period', unit:'Years', min:1, max:50, step:1, val:10, int:true},
+    {id:'freq',  type:'toggle', label:'Compounding frequency', options:[['1','Yearly'],['2','Half-yearly'],['4','Quarterly'],['12','Monthly'],['365','Daily']], val:'4',
+      note:'Bank and post office FDs in India usually compound quarterly.'}
+  ],
+  compute(v){
+    const f = +v.freq, r = v.rate/100, g = y => v.P*Math.pow(1 + r/f, f*y);
+    const A = g(v.years), si = v.P*(1 + r*v.years), eff = Math.pow(1 + r/f, f) - 1;
+    const yrs = [];
+    for (let y = 1; y <= v.years; y++){ const o = g(y - 1), cl = g(y), s = v.P*(1 + r*y); yrs.push([y, o, cl - o, cl - v.P, cl, s, cl - s]); }
+    const FQ = [['1','Yearly'],['2','Half-yearly'],['4','Quarterly'],['12','Monthly'],['365','Daily']];
+    const base1 = v.P*Math.pow(1 + r, v.years);
+    const cmp = FQ.map(([q, nm]) => { const n = +q, a = v.P*Math.pow(1 + r/n, n*v.years); return {q, nm, eff: Math.pow(1 + r/n, n) - 1, a, i: a - v.P, d: a - base1}; });
+    const extra = `<div class="card"><div class="card-h"><h3>Same deposit, different compounding frequency</h3></div>
+      <p class="sub">${inr(v.P)} at ${v.rate}% for ${v.years} years. More frequent compounding means a slightly higher effective rate.</p>
+      <div class="tablewrap"><table><thead><tr><th>Compounding</th><th>Effective annual rate</th><th>Maturity value</th><th>Total interest</th><th>Extra vs. yearly</th></tr></thead><tbody>
+      ${cmp.map(x => `<tr class="${x.q === v.freq ? 'sel' : ''}"><td>${x.nm}</td><td>${pct(x.eff, 3)}</td><td>${inr(x.a)}</td><td>${inr(x.i)}</td><td class="${x.d > 0.5 ? 'down' : ''}">${x.d > 0.5 ? '+' + inr(x.d) : '—'}</td></tr>`).join('')}
+      </tbody></table></div></div>`;
+    const lab = ['Y0'].concat(yrs.map(y => yrN(y[0])));
+    return {
+      kpis: [
+        {l:'Maturity value', v:A, hl:true},
+        {l:'Total interest earned', v:A - v.P, f:`${(A/v.P).toFixed(2)}x your money`},
+        {l:'Effective annual rate', txt: pct(eff, 3), f:`${v.rate}% compounded ${FQ.find(q => q[0] === v.freq)[1].toLowerCase()}`},
+        {l:'Simple interest value', v:si, f:'Same rate, no compounding'},
+        {l:'Extra due to compounding', v:A - si, cls:'good', f:'Interest earned on interest'},
+        {l:'Money doubles in', txt: (Math.log(2)/Math.log(1 + eff)).toFixed(1) + ' yrs', f:'At the effective rate'}
+      ],
+      extra,
+      chart: {type:'bar', stacked:true, labels: yrs.map(y => yrN(y[0])),
+        series:[{name:'Principal', color:NAVY, data: yrs.map(() => v.P)}, {name:'Accumulated interest', color:TEAL, data: yrs.map(y => y[3])}]},
+      chart2: {type:'line', labels: lab,
+        series:[{name:'Compound interest', color:TEAL, data:[v.P].concat(yrs.map(y => y[4]))}, {name:'Simple interest', color:GOLD, dash:true, data:[v.P].concat(yrs.map(y => y[5]))}]},
+      tables: {year: {head:[{h:'Year'},{h:'Opening balance',t:'inr'},{h:'Interest in year',t:'inr'},{h:'Total interest',t:'inr'},{h:'Closing balance',t:'inr'},{h:'Simple interest value',t:'inr'},{h:'Extra from compounding',t:'inr'}], rows: yrs}},
+      csvExtra: [{title:'COMPOUNDING FREQUENCY COMPARISON', head:['Compounding','Effective annual rate %','Maturity value','Total interest','Extra vs yearly'], rows: cmp.map(x => [x.nm, x.eff*100, x.a, x.i, x.d])}],
+      how: `<div class="fx">A = P × (1 + r/n)<sup>n × t</sup></div>
+        <p>P = ${inr(v.P)}, r = ${v.rate}%, n = ${f} times a year, t = ${v.years} years.</p>
+        <p><b>Excel checks:</b> maturity <code>=FV(${v.rate}%/${f}, ${f}*${v.years}, 0, -${v.P})</code> → ${inr2(A)}; effective rate <code>=EFFECT(${v.rate}%, ${f})</code> → ${pct(eff, 4)}.</p>
+        <p><b>Simple interest</b> = P × (1 + r × t) = ${inr(si)}. Compounding adds ${inr(A - si)} because each period's interest also earns interest.</p>
+        <p>Interest is shown before tax. FD interest is taxed every year at the slab rate, which reduces the effective compounding.</p>`
+    };
+  }
+},
+
+/* ------------------------------ HOLDING PERIOD RETURN ------------------------------ */
+hpr: {
+  title: 'Holding Period Return',
+  desc: 'Total return on an investment over the time you held it, including dividends or interest, and the equivalent annual return.',
+  chartTitle: 'What you invested vs. what you got back',
+  tableTitle: 'Return breakdown',
+  noMonth: true,
+  fields: [
+    {id:'buy',  label:'Purchase value', unit:'₹', min:1, max:10000000000, step:10000, sliderMax:10000000, val:500000},
+    {id:'sell', label:'Sale value / current value', unit:'₹', min:0, max:100000000000, step:10000, sliderMax:20000000, val:680000},
+    {id:'inc',  label:'Dividends / interest received (optional)', unit:'₹', min:0, max:10000000000, step:1000, sliderMax:1000000, val:15000, opt:true},
+    {id:'cost', label:'Charges – brokerage, STT, exit load (optional)', unit:'₹', min:0, max:1000000000, step:100, sliderMax:100000, val:1500, opt:true},
+    {id:'bDate', type:'date', label:'Purchase date', val:'2023-04-10'},
+    {id:'sDate', type:'date', label:'Sale date / valuation date', val:'2026-10-21'}
+  ],
+  compute(v){
+    const days = actD(pd(v.bDate), pd(v.sDate));
+    if (days <= 0) return {error:'Sale / valuation date must be after the purchase date.'};
+    const gain = v.sell + v.inc - v.cost - v.buy, h = gain/v.buy, yrs = days/365;
+    if (1 + h <= 0) return {error:'Total value received is zero or negative, so the return cannot be annualised.'};
+    const ann = Math.pow(1 + h, 1/yrs) - 1;
+    const rows = [
+      ['Purchase value', v.buy, 100],
+      ['Sale value / current value', v.sell, v.sell/v.buy*100],
+      ['Capital gain / (loss)', v.sell - v.buy, (v.sell - v.buy)/v.buy*100],
+      ['Dividends / interest received', v.inc, v.inc/v.buy*100],
+      ['Charges paid', -v.cost, -v.cost/v.buy*100]
+    ];
+    const t = ['Net gain (holding period return)', gain, h*100]; t._cls = 'tot'; rows.push(t);
+    return {
+      warn: days < 365 ? `The holding period is under 1 year (${days} days). Annualised figures for short periods can look much higher or lower than the actual return, so industry practice is to quote the absolute return (HPR) for periods under 1 year.` : '',
+      kpis: [
+        {l:'Holding period return (HPR)', txt: pct(h), hl:true, f:'Absolute return over the full period'},
+        {l:'Annualised return (CAGR)', txt: pct(ann), f:`Over ${yrs.toFixed(2)} yrs`},
+        {l:'Net gain', v:gain, cls: gain >= 0 ? 'good' : 'badk'},
+        {l:'Capital gain', v:v.sell - v.buy},
+        {l:'Income received', v:v.inc, f:'Dividends / interest'},
+        {l:'Holding period', txt: days < 31 ? days + ' days' : ym(Math.floor(days/30.4375)), f:`${days} days (${fmtD(v.bDate)} – ${fmtD(v.sDate)})`}
+      ],
+      chart: {type:'bar', stacked:true, labels:['Invested', 'Received'],
+        series:[{name:'Purchase value', color:NAVY, data:[v.buy, 0]}, {name:'Charges', color:GREY, data:[v.cost, 0]},
+                {name:'Sale / current value', color:TEAL, data:[0, v.sell]}, {name:'Dividends / interest', color:GOLD, data:[0, v.inc]}]},
+      tables: {year: {head:[{h:'Item'},{h:'Amount',t:'inr'},{h:'% of purchase value',t:'pct'}], rows}},
+      how: `<div class="fx">HPR = (Sale value + Income − Charges − Purchase value) ÷ Purchase value</div>
+        <div class="fx">Annualised return = (1 + HPR)<sup>365 ÷ days held</sup> − 1</div>
+        <p><b>Excel checks:</b> HPR <code>=(${v.sell}+${v.inc}-${v.cost}-${v.buy})/${v.buy}</code> → ${pct(h, 4)}; annualised <code>=(1+${trim(h*1e4)/1e4})^(365/(${xD(v.sDate)}-${xD(v.bDate)}))-1</code> → ${pct(ann, 4)}.</p>
+        <p>This assumes income is received at the end. If dividends were received during the period, or you invested in several instalments, use <b>XIRR</b> in the Financial Calculator for a more precise annual return.</p>`
+    };
+  }
+},
+
+/* ------------------------------ RULE OF 72 ------------------------------ */
+r72: {
+  title: 'Rule of 72',
+  desc: 'A quick mental shortcut: divide 72 by the annual return to estimate how many years it takes to double your money. The calculator also shows the exact answer.',
+  chartTitle: 'Growth of ₹1 lakh – when it doubles, triples and quadruples',
+  tableTitle: 'Rule of 72 vs. exact doubling time',
+  noMonth: true,
+  fields: [
+    {id:'rate', label:'Annual return', unit:'%', min:0.1, max:100, step:0.1, sliderMax:30, val:12},
+    {id:'tyrs', label:'Years in which you want to double (optional)', unit:'Years', min:0, max:100, step:0.5, sliderMax:30, val:6, opt:true,
+      note:'Finds the return needed to double in this time. Leave at 0 to skip.'},
+    {id:'inf',  label:'Inflation (optional)', unit:'%', min:0, max:50, step:0.5, sliderMax:15, val:6, opt:true,
+      note:'Shows how quickly inflation halves the value of money.'}
+  ],
+  compute(v){
+    const r = v.rate/100, L = x => Math.log(x)/Math.log(1 + r);
+    const e2 = L(2), e3 = L(3), e4 = L(4), q = 72/v.rate;
+    const kpis = [
+      {l:'Doubles in (Rule of 72)', txt: q.toFixed(1) + ' yrs', hl:true, f:`72 ÷ ${v.rate}`},
+      {l:'Doubles in (exact)', txt: e2.toFixed(2) + ' yrs', f:`Difference ${Math.abs(q - e2).toFixed(2)} yrs`},
+      {l:'Triples in (Rule of 114)', txt: (114/v.rate).toFixed(1) + ' yrs', f:`Exact ${e3.toFixed(2)} yrs`},
+      {l:'4x in (Rule of 144)', txt: (144/v.rate).toFixed(1) + ' yrs', f:`Exact ${e4.toFixed(2)} yrs`}
+    ];
+    if (v.tyrs > 0) kpis.push({l:`Return needed to double in ${v.tyrs} yrs`, txt: (72/v.tyrs).toFixed(2) + '%', f:`Exact ${pct(Math.pow(2, 1/v.tyrs) - 1)}`});
+    if (v.inf > 0) kpis.push({l:`Inflation of ${v.inf}% halves money's value in`, txt: (72/v.inf).toFixed(1) + ' yrs', cls:'badk', f:`Exact ${(Math.log(2)/Math.log(1 + v.inf/100)).toFixed(2)} yrs`});
+    if (v.inf > 0) kpis.push({l:'Real return (after inflation)', txt: pct((1 + r)/(1 + v.inf/100) - 1), f:`Real money doubles in ~${((1 + r)/(1 + v.inf/100) - 1 > 0 ? (Math.log(2)/Math.log((1 + r)/(1 + v.inf/100))).toFixed(1) + ' yrs' : 'never')}`});
+
+    const rates = [2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 18, 20, 24, 30];
+    if (!rates.includes(v.rate)) { rates.push(v.rate); rates.sort((a, b) => a - b); }
+    const rows = rates.map(x => { const ex = Math.log(2)/Math.log(1 + x/100), row = [x + '%', 72/x, ex, 72/x - ex, 114/x, Math.log(3)/Math.log(1 + x/100)]; if (x === v.rate) row._cls = 'sel'; return row; });
+
+    const N = Math.max(1, Math.ceil(e4) + 1), lab = [], val = [], real = [];
+    for (let y = 0; y <= N; y++){ lab.push(yrN(y)); val.push(1e5*Math.pow(1 + r, y)); real.push(1e5/Math.pow(1 + v.inf/100, y)); }
+    const series = [{name:'Value of ₹1 lakh', color:TEAL, data: val},
+                    {name:'2x', color:GOLD, dash:true, data: val.map(() => 2e5)},
+                    {name:'3x', color:GREY, dash:true, data: val.map(() => 3e5)},
+                    {name:'4x', color:NAVY, dash:true, data: val.map(() => 4e5)}];
+    if (v.inf > 0) series.push({name:`Buying power of ₹1 lakh at ${v.inf}% inflation`, color:RED, data: real});
+    return {
+      kpis,
+      hint: v.rate < 4 || v.rate > 20 ? `The Rule of 72 is most accurate between about 6% and 10%. At ${v.rate}% the shortcut is off by ${Math.abs(q - e2).toFixed(2)} years.` : '',
+      chart: {type:'line', labels: lab, series},
+      tables: {year: {head:[{h:'Annual return',t:'txt'},{h:'Rule of 72 (years)',t:'n2'},{h:'Exact doubling time (years)',t:'n2'},{h:'Difference (years)',t:'n2'},{h:'Rule of 114 – triple (years)',t:'n2'},{h:'Exact tripling time (years)',t:'n2'}], rows}},
+      how: `<div class="fx">Years to double ≈ 72 ÷ annual return (%)<br>Exact years = ln(2) ÷ ln(1 + r)</div>
+        <p><b>Excel checks:</b> rule <code>=72/${v.rate}</code> → ${q.toFixed(2)}; exact <code>=NPER(${v.rate}%, 0, -1, 2)</code> or <code>=LN(2)/LN(1+${v.rate}%)</code> → ${e2.toFixed(4)}${v.tyrs > 0 ? `; return needed <code>=RRI(${v.tyrs}, 1, 2)</code> → ${pct(Math.pow(2, 1/v.tyrs) - 1, 4)}` : ''}.</p>
+        <p>The same idea works for other multiples: 114 for tripling and 144 for quadrupling. It also works in reverse for inflation: at ${v.inf || 6}% inflation, money loses half its buying power in about ${(72/(v.inf || 6)).toFixed(0)} years.</p>
+        <p>The rule assumes yearly compounding and a constant return.</p>`
+    };
+  }
+}
+});
+
+/* =====================================================================
+   PHASE 5 – INVESTMENT TAX CALCULATOR (capital gains, resident individuals)
+   ===================================================================== */
+const TAX_KEYS = Object.keys(TAX_ASSETS);
+const TAX_CH = {eq:'Equity', reit:'REIT/InvIT', debt:'Debt MF', oth:'Hybrid/FoF', etf:'Gold ETF', bondL:'Listed bond', bondU:'Unlisted/MLD', sgb:'SGB', phys:'Phys. gold'};
+const kindTxt = r => r.kind === 'exempt' ? 'Exempt' : r.kind === 'slab' ? `Slab (${r.baseRate}%)` : r.kind === '12.5x' ? '12.5% (₹1.25 L exempt)' : r.baseRate + '%';
+const ltRule = A => A.slabAlways ? 'Always slab' : `More than ${A.th} months`;
+
+Object.assign(CALCS, {
+tax: {
+  title: 'Investment Tax Calculator',
+  desc: 'Capital gains tax on equity, debt, hybrid, gold, bonds and other investments for resident individuals, with a side-by-side comparison of how the same gain is taxed across asset types.',
+  chartTitle: 'Same investment, same gain – tax vs. what you keep, by asset type',
+  tableTitle: 'Same gain, different asset types – tax comparison',
+  noMonth: true,
+  wrapTable: true,
+  csvNote: 'Rules for sales on or after 23-Jul-2024: Finance (No. 2) Act 2024 and Finance Act 2025, unchanged in Budget 2026. Indicative only - please consult a tax advisor.',
+  fields: [
+    {id:'asset', type:'select', label:'Type of investment', val:'eq', options: TAX_KEYS.map(k => [k, TAX_ASSETS[k].nm]),
+      note:'For mutual funds, check the equity / debt share in the fund\'s factsheet, not just the fund\'s name.'},
+    {id:'sgbMode', type:'toggle', label:'How was the SGB exited?', options:[['rbi','Redeemed with RBI'],['mkt','Sold on exchange']], val:'rbi', showIf:{f:'asset', v:'sgb'},
+      note:'Redemption with RBI (at maturity or in the premature window) is tax-free for individuals.'},
+    {id:'buy',  label:'Purchase value (cost)', unit:'₹', min:1, max:100000000000, step:10000, sliderMax:10000000, val:1000000},
+    {id:'sell', label:'Sale / redemption value', unit:'₹', min:0, max:100000000000, step:10000, sliderMax:20000000, val:1600000},
+    {id:'exp',  label:'Transfer expenses – brokerage etc. (optional)', unit:'₹', min:0, max:1000000000, step:100, sliderMax:50000, val:0, opt:true,
+      note:'STT is not deductible.'},
+    {id:'bDate', type:'date', label:'Purchase date', val:'2023-06-15'},
+    {id:'sDate', type:'date', label:'Sale date', val:'2026-10-21', note:'Calculator applies to sales on or after 23-Jul-2024.'},
+    {type:'head', label:'Equity-specific (optional)'},
+    {id:'exUsed', label:'₹1.25 lakh LTCG exemption already used this year', unit:'₹', min:0, max:125000, step:5000, val:0, opt:true, showIf:{f:'asset', v:['eq','reit']},
+      note:'The ₹1.25 lakh exemption is shared across all equity LTCG in a financial year.'},
+    {id:'fmv', label:'Value on 31-Jan-2018 (if bought before 1-Feb-2018)', unit:'₹', min:0, max:100000000000, step:1000, sliderMax:10000000, val:0, opt:true, showIf:{f:'asset', v:['eq','reit']},
+      note:'Grandfathering: cost = higher of actual cost and (lower of this value and sale value). Leave at 0 if not applicable.'},
+    {type:'head', label:'Your tax profile'},
+    {id:'slab', type:'toggle', label:'Your income-tax slab rate', options:[['0','0%'],['5','5%'],['10','10%'],['15','15%'],['20','20%'],['25','25%'],['30','30%']], val:'30',
+      note:'New regime FY 2026-27: up to ₹4 L nil, ₹4–8 L 5%, ₹8–12 L 10%, ₹12–16 L 15%, ₹16–20 L 20%, ₹20–24 L 25%, above ₹24 L 30%. Old regime: 5% / 20% / 30%.'},
+    {id:'sur', type:'toggle', label:'Surcharge (based on total income)', options:[['0','None'],['10','10%'],['15','15%'],['25','25%'],['37','37%']], val:'0',
+      note:'Above ₹50 L 10%, ₹1 Cr 15%, ₹2 Cr 25%, ₹5 Cr 37% (old regime only; new regime capped at 25%). Surcharge on capital gains at special rates (20% / 12.5%) is capped at 15%.'}
+  ],
+  compute(v){
+    if (v.sDate <= v.bDate) return {error:'Sale date must be after the purchase date.'};
+    if (v.sDate < '2024-07-23') return {error:'This calculator applies the rules for sales on or after 23-Jul-2024. Older sales were taxed at the previous rates.'};
+    const p = Object.assign({}, v, {slab: +v.slab, sur: +v.sur});
+    if (v.asset !== 'eq' && v.asset !== 'reit'){ p.fmv = 0; p.exUsed = 0; }
+    const r = capTax(v.asset, p), A = r.A;
+    const effRate = r.gain > 0 ? r.total/r.gain : 0, yrs = r.days/365;
+    const preRet = Math.pow(v.sell/v.buy, 1/yrs) - 1, postRet = Math.pow((v.sell - r.total)/v.buy, 1/yrs) - 1;
+
+    /* KPIs */
+    const kpis = [
+      {l:'Capital gain', v:r.gain, cls: r.gain < 0 ? 'badk' : '', f: r.gfApplied ? `Cost stepped up to ${inr(r.cost)} (grandfathering)` : `Sale ${inr(v.sell)} − cost ${inr(v.buy)}${v.exp ? ' − expenses' : ''}`},
+      {l:'Classification', txt: r.label, f:`Held ${r.days < 31 ? r.days + ' days' : ym(Math.floor(r.days/30.4375)) + ' (' + r.days + ' days)'}`},
+      {l:'Tax rate', txt: kindTxt(r), f: r.sec},
+      {l:'Total tax payable', v:r.total, hl:true, f: r.gain > 0 ? `Effective ${pct(effRate)} of the gain (incl. surcharge & cess)` : 'No tax on a loss'},
+      {l:'Gain after tax', v:r.gain - r.total, cls: r.gain - r.total >= 0 ? 'good' : 'badk'},
+      {l:'Annual return: before → after tax', txt: `${pct(preRet)} → ${pct(postRet)}`, f:`Over ${yrs.toFixed(2)} yrs`}
+    ];
+    if (r.exempt > 0) kpis.splice(3, 0, {l:'LTCG exemption used', v:r.exempt, f:`Taxable gain ${inr(r.taxable)}`});
+
+    /* Computation breakdown */
+    const bd = [
+      ['Sale / redemption value', v.sell],
+      [r.gfApplied ? 'Less: cost (grandfathered)' : 'Less: purchase cost', -r.cost],
+      ['Less: transfer expenses', -(v.exp || 0)],
+      ['Capital gain', r.gain],
+      ['Less: ₹1.25 lakh exemption (Sec 112A)', -r.exempt],
+      ['Taxable gain', r.taxable],
+      [`Tax @ ${r.baseRate}%`, r.tax],
+      [`Surcharge @ ${r.surRate}%${(+v.sur > 15 && r.kind !== 'slab' && r.kind !== 'exempt') ? ' (capped at 15%)' : ''}`, r.sur],
+      ['Health & education cess @ 4%', r.cess],
+      ['Total tax payable', r.total],
+      ['Net amount in hand (sale − expenses − tax)', v.sell - (v.exp || 0) - r.total]
+    ].filter(x => !(x[0].startsWith('Less: ₹1.25') && !r.exempt) && !(x[0].startsWith('Less: transfer') && !v.exp));
+    let extra = `<div class="card"><div class="card-h"><h3>Tax computation</h3></div>
+      <p class="sub">${esc(A.nm)} · bought ${fmtD(v.bDate)} · sold ${fmtD(v.sDate)}</p>
+      <div class="tablewrap"><table><tbody>${bd.map(x => `<tr${/^(Capital gain|Taxable gain|Total tax payable)$/.test(x[0]) ? ' class="tot"' : ''}><td>${x[0]}</td><td>${inr(x[1])}</td></tr>`).join('')}</tbody></table></div></div>`;
+
+    /* Wait-to-save */
+    let warn = '', ok = '';
+    if (r.gain <= 0){
+      ok = '';
+      warn = `This is a capital loss of ${inr(-r.gain)}. ${r.label === 'Long-term' ? 'A long-term loss can be set off only against long-term gains.' : 'A short-term loss can be set off against both short-term and long-term gains.'} Unused losses can be carried forward for 8 years if the return is filed on time.`;
+    } else if (r.label === 'Short-term' && r.ltOn){
+      const lt = capTax(v.asset, p, ymd(r.ltOn)), save = r.total - lt.total;
+      if (save > 1) extra = `<div class="alert ok" style="font-weight:500">💡 <b>Hold a little longer and save:</b> this becomes long-term on <b>${fmtD(r.ltOn)}</b> (${actD(pd(v.sDate), r.ltOn)} days away). At the same sale value, tax would fall from ${inr(r.total)} to ${inr(lt.total)}, a saving of <b>${inr(save)}</b>.</div>` + extra;
+    } else if (r.kind === '12.5x' && r.taxable === 0){
+      ok = `The whole gain is covered by the ₹1.25 lakh annual exemption, so no tax is payable.`;
+    } else if (r.kind === 'exempt'){
+      ok = r.sec + '.';
+    }
+    if (r.kind === 'slab' && r.label.startsWith('Deemed')) extra += `<div class="hint" style="margin:-6px 0 18px">This gain is taxed at your slab rate however long you hold it, so there is no benefit in waiting for long-term status. For a debt allocation in a high tax bracket, consider whether arbitrage funds (taxed as equity) or tax-free bonds suit the client.</div>`;
+
+    /* Comparison across asset types */
+    const cmp = TAX_KEYS.map(k => {
+      const x = capTax(k, Object.assign({}, p, (k === 'eq' || k === 'reit') ? {} : {fmv: 0, exUsed: 0}));
+      return x;
+    });
+    const rows = cmp.map(x => {
+      const row = [x.A.sh, x.label.startsWith('Deemed') ? 'Never – slab rate' : x.kind === 'exempt' ? 'Exempt on RBI redemption' : ltRule(x.A), x.label, kindTxt(x), x.gain, x.total, x.gain > 0 ? x.total/x.gain*100 : 0, x.gain - x.total];
+      if (x.key === v.asset) row._cls = 'sel';
+      return row;
+    });
+    const how = `
+      <p><b>Steps:</b> (1) Capital gain = sale value − cost − transfer expenses. (2) Holding period decides short-term or long-term. (3) The rate depends on the asset type. (4) Surcharge, then 4% cess, is added.</p>
+      <p><b>Excel check:</b> <code>=${trim(r.taxable)}*${r.baseRate}%*(1+${r.surRate}%)*(1+4%)</code> → ${inr2(r.total)}</p>
+      <p><b>Rules used (sales on or after 23-Jul-2024, unchanged in Budget 2026 for FY 2026-27):</b></p>
+      <div class="tablewrap" style="max-height:none"><table class="wrap"><thead><tr><th>Asset type</th><th>Long-term after</th><th>Short-term rate</th><th>Long-term rate</th></tr></thead><tbody>
+        <tr><td>Listed shares, equity MFs & equity-oriented hybrids (≥65% Indian equity, incl. arbitrage), REITs / InvITs</td><td>12 months</td><td>20%</td><td>12.5% above ₹1.25 L a year</td></tr>
+        <tr><td>Debt MFs & debt-oriented hybrids (>65% debt) bought on or after 1-Apr-2023</td><td>Never</td><td colspan="2">Slab rate, whatever the holding period (Sec 50AA)</td></tr>
+        <tr><td>Debt MFs bought before 1-Apr-2023</td><td>24 months</td><td>Slab</td><td>12.5%, no indexation</td></tr>
+        <tr><td>Other hybrids / FoFs (<65% equity and ≤65% debt), Gold, Silver & International FoFs</td><td>24 months</td><td>Slab</td><td>12.5%</td></tr>
+        <tr><td>Gold / Silver / International ETFs (listed)</td><td>12 months</td><td>Slab</td><td>12.5%</td></tr>
+        <tr><td>Listed bonds / NCDs / G-Secs</td><td>12 months</td><td>Slab</td><td>12.5%</td></tr>
+        <tr><td>Unlisted bonds / debentures, market-linked debentures</td><td>Never</td><td colspan="2">Slab rate (Sec 50AA)</td></tr>
+        <tr><td>Sovereign Gold Bonds</td><td>12 months (if sold on exchange)</td><td>Slab</td><td>12.5%; redemption with RBI is exempt</td></tr>
+        <tr><td>Physical gold, jewellery, unlisted shares</td><td>24 months</td><td>Slab</td><td>12.5%</td></tr>
+      </tbody></table></div>
+      <p style="margin-top:10px"><b>Transition rule:</b> non-equity funds and ETFs bought between 1-Apr-2023 and 31-Mar-2025 were taxed at slab if sold before 1-Apr-2025 (under the older "≤35% equity" definition). From 1-Apr-2025 the definition is ">65% debt", so gold, international and balanced funds became eligible for long-term rates again.</p>
+      <p><b>Not covered:</b> section 87A rebate (not available on special-rate gains like 20% / 12.5% equity gains), set-off against other gains or losses, property (12.5% or 20% with indexation option), F&amp;O / intraday (business income), NRI TDS, dividends / IDCW and FD interest (taxed at slab every year). Under the Income-tax Act 2025 the section numbers have changed, but the rates are the same.</p>`;
+
+    return {
+      kpis, extra, warn, ok, how,
+      hint: r.label === 'Short-term' && r.ltOn ? `Becomes long-term on ${fmtD(r.ltOn)}.` : '',
+      chart: {type:'bar', stacked:true, labels: cmp.map(x => TAX_CH[x.key]), tips: cmp.map(x => x.A.sh + ' – ' + x.label),
+        series:[{name:'Tax', color:RED, data: cmp.map(x => Math.max(0, x.total))}, {name:'Gain after tax', color:TEAL, data: cmp.map(x => Math.max(0, x.gain - x.total))}]},
+      tables: {year: {head:[{h:'Asset type',t:'txt'},{h:'Long-term after',t:'txt'},{h:'Your sale is',t:'txt'},{h:'Rate',t:'txt'},{h:'Capital gain',t:'inr'},{h:'Total tax',t:'inr'},{h:'Effective tax on gain',t:'pct'},{h:'Gain after tax',t:'inr'}], rows}},
+      csvExtra: [{title:'TAX COMPUTATION', head:['Item','Amount (Rs)'], rows: bd}]
+    };
+  }
+}
+});
+
+/* =====================================================================
+   GOAL PLANNING (multiple goals + retirement module)
+   ===================================================================== */
+const PRESETS = {
+  edu:  {name:"Child's Higher Education", pr:'High',   cost:2500000, years:12, inf:8, sav:0, rate:12},
+  mar:  {name:"Child's Marriage",         pr:'Medium', cost:2000000, years:18, inf:6, sav:0, rate:12},
+  home: {name:'Home Down Payment',        pr:'High',   cost:3000000, years:5,  inf:6, sav:0, rate:9},
+  car:  {name:'New Car',                  pr:'Low',    cost:1000000, years:3,  inf:5, sav:0, rate:8},
+  trip: {name:'Foreign Vacation',         pr:'Low',    cost:500000,  years:2,  inf:6, sav:0, rate:7},
+  cust: {name:'Custom Goal',              pr:'Medium', cost:1000000, years:5,  inf:6, sav:0, rate:10}
+};
+const SAMPLE = () => [Object.assign({}, PRESETS.edu, {sav:200000}), Object.assign({}, PRESETS.mar),
+                      Object.assign({}, PRESETS.home, {sav:500000}), Object.assign({}, PRESETS.car)];
+const GCOLS = [
+  {k:'name', h:'Goal name', type:'text'},
+  {k:'pr', h:'Priority', type:'select'},
+  {k:'cost', h:"Today's cost (₹)", min:1000, max:1e10},
+  {k:'years', h:'Years to goal', min:1, max:50, int:true},
+  {k:'inf', h:'Inflation %', min:0, max:20},
+  {k:'sav', h:'Existing savings (₹)', min:0, max:1e10},
+  {k:'rate', h:'Expected return %', min:0, max:30}
+];
+const RET_FIELDS = [
+  {id:'age',    label:'Current age', unit:'Years', min:18, max:80, step:1, val:35, int:true},
+  {id:'retAge', label:'Retirement age', unit:'Years', min:30, max:85, step:1, val:60, int:true},
+  {id:'life',   label:'Life expectancy', unit:'Years', min:50, max:110, step:1, val:85, int:true},
+  {id:'exp',    label:"Monthly household expenses (today)", unit:'₹', min:1000, max:100000000, step:5000, sliderMax:500000, val:60000},
+  {id:'inf',    label:'Inflation', unit:'%', min:0, max:15, step:0.5, val:6},
+  {id:'pre',    label:'Return before retirement', unit:'%', min:0, max:30, step:0.1, val:12},
+  {id:'post',   label:'Return after retirement', unit:'%', min:0, max:20, step:0.1, val:8},
+  {id:'sav',    label:'Existing retirement savings (EPF/PPF/NPS/MF)', unit:'₹', min:0, max:10000000000, step:50000, sliderMax:50000000, val:1000000}
+];
+const PAL = ['#0B2545','#13807A','#C8963E','#6C5CE7','#E07A5F','#3D9970','#8E9AAF','#B5838D','#2A9D8F','#E9C46A','#5D6D7E','#A0522D'];
+const PR_ORD = {High:0, Medium:1, Low:2};
+const plan = {goals: SAMPLE(), mode: 'flat', retOn: true, res: null};
+
+function planHTML(){
+  return `
+  <h2>Goal Planning</h2>
+  <p class="desc">Plan several life goals together, including retirement, and see the total monthly investment the family needs.</p>
+  <div class="print-only" style="margin-bottom:10px;color:#6B7280">Prepared on ${new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</div>
+  <div class="card">
+    <div class="card-h"><h3>1. Life goals</h3>
+      <div class="actions no-print">
+        <button class="btn" data-add="edu">+ Child Education</button><button class="btn" data-add="mar">+ Child Marriage</button>
+        <button class="btn" data-add="home">+ House</button><button class="btn" data-add="car">+ Car</button>
+        <button class="btn" data-add="trip">+ Vacation</button><button class="btn primary" data-add="cust">+ Custom goal</button>
+      </div>
+    </div>
+    <div class="tablewrap gp-edit"><table id="gp-goals"></table></div>
+    <div class="gp-foot">
+      <div class="field" style="margin:0;max-width:260px"><label for="gp-step"><span>Annual step-up in SIP (optional)</span><span class="unit">%</span></label>
+        <div class="row" id="gp-step-box"><input type="number" id="gp-step" value="0" min="0" max="50" step="any"></div><div class="err" id="gp-step-e"></div></div>
+      <div class="actions no-print"><button class="btn" id="gp-sample">Load sample goals</button><button class="btn" id="gp-clear">Clear all goals</button></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-h"><h3>2. Retirement module</h3>
+      <label class="chk"><input type="checkbox" id="gp-ret-on" checked> Include retirement in this plan</label></div>
+    <div id="gp-ret-wrap">
+      <div class="fgrid">${RET_FIELDS.map(f => fieldHTML('gpr', f)).join('')}</div>
+      <div id="gp-ret-out"></div>
+    </div>
+  </div>
+  <div id="gp-results"></div>
+  <div id="gp-body">
+    <div class="card">
+      <div class="card-h"><h3>3. Goal summary</h3>
+        <div class="actions"><button class="btn" id="gp-csv">Export to Excel (CSV)</button><button class="btn primary" id="gp-print">Print / Save as PDF</button></div></div>
+      <div class="tablewrap"><table id="gp-table"></table></div>
+    </div>
+    <div class="card"><div class="card-h"><h3>Goal timeline: amount needed and when</h3></div><canvas id="gp-chart"></canvas></div>
+    <div class="card"><div class="card-h"><h3>Monthly SIP commitment by year</h3>
+      <div class="seg" id="gp-seg" style="display:none"><button data-v="flat" class="on">Flat SIP</button><button data-v="step">Step-up SIP</button></div></div>
+      <canvas id="gp-chart2"></canvas>
+      <p class="desc" style="margin:10px 0 0;font-size:12px">The SIP for each goal stops once that goal is reached, so the total commitment falls over time.</p></div>
+    <details class="card how"><summary>How this is calculated</summary><div class="how-body" id="gp-how"></div></details>
+  </div>`;
+}
+
+function renderGoalRows(){
+  const t = document.getElementById('gp-goals');
+  if (!plan.goals.length){
+    t.innerHTML = '<tbody><tr><td style="text-align:center;padding:18px;color:#6B7280">No goals added. Use the buttons above to add goals.</td></tr></tbody>';
+    return;
+  }
+  t.innerHTML = '<thead><tr><th>#</th>' + GCOLS.map(c => `<th>${c.h}</th>`).join('') + '<th></th></tr></thead><tbody>' +
+    plan.goals.map((g, i) => '<tr><td>' + (i+1) + '</td>' + GCOLS.map(c => {
+      if (c.type === 'text') return `<td><input class="gi gname" data-i="${i}" data-k="name" value="${esc(g.name)}"></td>`;
+      if (c.type === 'select') return `<td><select class="gi" data-i="${i}" data-k="pr">${['High','Medium','Low'].map(p => `<option${p === g.pr ? ' selected' : ''}>${p}</option>`).join('')}</select></td>`;
+      return `<td><input class="gi" type="number" step="any" inputmode="decimal" data-i="${i}" data-k="${c.k}" value="${g[c.k]}"></td>`;
+    }).join('') + `<td><button class="del" data-del="${i}" title="Remove goal">✕</button></td></tr>`).join('') + '</tbody>';
+  t.querySelectorAll('.gi').forEach(el => el.addEventListener('input', () => {
+    plan.goals[+el.dataset.i][el.dataset.k] = el.value;
+    runPlan();
+  }));
+  t.querySelectorAll('[data-del]').forEach(b => b.onclick = () => { plan.goals.splice(+b.dataset.del, 1); renderGoalRows(); runPlan(); });
+}
+
+function initPlan(){
+  const sec = document.getElementById('calc-plan');
+  sec.querySelectorAll('[data-add]').forEach(b => b.onclick = () => {
+    plan.goals.push(Object.assign({}, PRESETS[b.dataset.add])); renderGoalRows(); runPlan();
+    const rows = document.querySelectorAll('#gp-goals .gname'); if (rows.length) rows[rows.length-1].focus();
+  });
+  document.getElementById('gp-sample').onclick = () => { plan.goals = SAMPLE(); renderGoalRows(); runPlan(); };
+  document.getElementById('gp-clear').onclick = () => { if (confirm('Remove all goals?')){ plan.goals = []; renderGoalRows(); runPlan(); } };
+  document.getElementById('gp-step').addEventListener('input', runPlan);
+  const on = document.getElementById('gp-ret-on');
+  on.onchange = () => { plan.retOn = on.checked; document.getElementById('gp-ret-wrap').style.display = on.checked ? '' : 'none'; runPlan(); };
+  wireFields('gpr', RET_FIELDS, runPlan);
+  const seg = document.getElementById('gp-seg');
+  seg.querySelectorAll('button').forEach(b => b.onclick = () => {
+    plan.mode = b.dataset.v; seg.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); runPlan();
+  });
+  document.getElementById('gp-csv').onclick = exportPlanCSV;
+  document.getElementById('gp-print').onclick = () => window.print();
+  attachHover(document.getElementById('gp-chart')); attachHover(document.getElementById('gp-chart2'));
+  renderGoalRows(); runPlan();
+}
+
+function runPlan(){
+  const res = document.getElementById('gp-results'), body = document.getElementById('gp-body'), rout = document.getElementById('gp-ret-out');
+  const errs = [];
+  const stEl = document.getElementById('gp-step'), stRaw = stEl.value.trim();
+  const st = stRaw === '' ? 0 : parseFloat(stRaw);
+  const stBad = isNaN(st) || st < 0 || st > 50;
+  document.getElementById('gp-step-box').classList.toggle('bad', stBad);
+  document.getElementById('gp-step-e').textContent = stBad ? 'Enter a value between 0% and 50%, or leave it blank.' : '';
+  if (stBad) errs.push('Step-up % is invalid');
+  const hasStep = !stBad && st > 0;
+  const seg = document.getElementById('gp-seg');
+  seg.style.display = hasStep ? '' : 'none';
+  if (!hasStep && plan.mode !== 'flat'){ plan.mode = 'flat'; seg.querySelectorAll('button').forEach(x => x.classList.toggle('on', x.dataset.v === 'flat')); }
+
+  const goals = [];
+  plan.goals.forEach((g, i) => {
+    const o = {name: String(g.name || '').trim() || ('Goal ' + (i+1)), pr: g.pr};
+    GCOLS.forEach(c => {
+      if (c.type) return;
+      const el = document.querySelector(`#gp-goals [data-i="${i}"][data-k="${c.k}"]`);
+      const x = parseFloat(g[c.k]);
+      const bad = !!(String(g[c.k]).trim() === '' || isNaN(x) || x < c.min || x > c.max || (c.int && !Number.isInteger(x)));
+      if (el){ el.classList.toggle('bad', bad); el.title = bad ? `Enter ${c.int ? 'a whole number' : 'a value'} between ${c.min} and ${c.max}` : ''; }
+      if (bad) errs.push(`Goal ${i+1} – ${c.h}`);
+      o[c.k] = x;
+    });
+    goals.push(o);
+  });
+  let ret = null;
+  if (plan.retOn){
+    const rv = readFields('gpr', RET_FIELDS);
+    if (!rv) errs.push('Retirement inputs');
+    else if (rv.retAge <= rv.age) errs.push('Retirement age must be more than current age');
+    else if (rv.life <= rv.retAge) errs.push('Life expectancy must be more than retirement age');
+    else { rv.stepUp = hasStep ? st : 0; ret = Object.assign(retMath(rv), {inp: rv}); }
+  }
+  if (errs.length){
+    res.innerHTML = `<div class="alert">Please correct these inputs to see results: ${errs.slice(0, 6).join('; ')}${errs.length > 6 ? '…' : ''}</div>`;
+    body.classList.add('stale'); rout.innerHTML = ''; return;
+  }
+  if (!goals.length && !ret){
+    res.innerHTML = '<div class="alert warn">Add at least one goal, or include retirement, to see the plan.</div>';
+    body.classList.add('stale'); rout.innerHTML = ''; return;
+  }
+  body.classList.remove('stale');
+
+  const rows = goals.map(g => Object.assign({}, g, goalMath(Object.assign({}, g, {stepUp: hasStep ? st : 0}))));
+  if (ret){
+    const R = ret.inp;
+    rows.push({name:'Retirement', pr:'High', ret:true, years:ret.N, cost:null, inf:R.inf, sav:R.sav, rate:R.pre,
+               N:ret.N*12, fvCost:ret.corpus, fvSav:ret.fvSav, gap:ret.gap, surplus:ret.surplus, lumpExtra:ret.lumpExtra, sipFlat:ret.sipFlat, sipStep:ret.sipStep});
+    const rk = [
+      {l:'Years to retirement', txt: ret.N + ' yrs', f: `Retirement lasts ${ret.M} yrs`},
+      {l:'Monthly expenses at retirement', v: ret.expRet, f: `${inr(R.exp)} today at ${R.inf}% inflation`},
+      {l:'Corpus required at retirement', v: ret.corpus, hl:true},
+      {l:'Existing savings will grow to', v: ret.fvSav},
+      {l:'Monthly SIP needed', v: ret.sipFlat, f: inr(ret.sipFlat) + ' till age ' + R.retAge}
+    ];
+    if (hasStep) rk.push({l:'Step-up SIP (starting)', v: ret.sipStep, f: `${inr(ret.sipStep)}, rising ${st}% yearly`});
+    rout.innerHTML = '<div class="kpis" style="margin:4px 0 0">' + rk.map(kpiHTML).join('') + '</div>' +
+      (ret.gap === 0 ? `<div class="alert ok">Existing retirement savings are enough. They are projected to exceed the corpus required by ${inr(ret.surplus)}.</div>` : '');
+  } else rout.innerHTML = '';
+  rows.sort((a, b) => PR_ORD[a.pr] - PR_ORD[b.pr] || a.years - b.years);
+  const sum = k => rows.reduce((a, r) => a + r[k], 0);
+  const tot = {fvCost: sum('fvCost'), fvSav: sum('fvSav'), gap: sum('gap'), lump: sum('lumpExtra'), flat: sum('sipFlat'), step: sum('sipStep')};
+  plan.res = {rows, tot, st, hasStep, ret};
+
+  const k = [
+    {l:'Goals in plan', txt: String(rows.length), f: rows.filter(r => r.pr === 'High').length + ' high priority'},
+    {l:'Total future cost of all goals', v: tot.fvCost},
+    {l:'Total shortfall to be funded', v: tot.gap},
+    {l:'Total lumpsum needed today', v: tot.lump, f:'One-time option (instead of SIP)'},
+    {l:'Total monthly SIP needed', v: tot.flat, hl:true}
+  ];
+  if (hasStep) k.push({l:'Total step-up SIP (starting)', v: tot.step, f: `${inr(tot.step)}, rising ${st}% yearly`});
+  res.innerHTML = '<div class="kpis">' + k.map(kpiHTML).join('') + '</div>';
+
+  const H = ['Goal','Priority','Years',"Today's cost",'Inflation','Future cost','Existing savings grow to','Shortfall','Lumpsum needed today','Monthly SIP'];
+  if (hasStep) H.push('Step-up SIP (start)');
+  document.getElementById('gp-table').innerHTML = '<thead><tr>' + H.map(h => `<th>${h}</th>`).join('') + '</tr></thead><tbody>' +
+    rows.map(r => `<tr><td>${esc(r.name)}</td><td><span class="pr pr-${r.pr}">${r.pr}</span></td><td>${r.years}</td>
+      <td>${r.ret ? inr(ret.inp.exp) + '/mth exp.' : inr(r.cost)}</td><td>${r.inf}%</td>
+      <td>${inr(r.fvCost)}</td><td>${inr(r.fvSav)}</td><td>${inr(r.gap)}</td><td>${inr(r.lumpExtra)}</td><td><b>${inr(r.sipFlat)}</b></td>${hasStep ? `<td>${inr(r.sipStep)}</td>` : ''}</tr>`).join('') +
+    `<tr class="tot"><td>Total</td><td></td><td></td><td></td><td></td><td>${inr(tot.fvCost)}</td><td>${inr(tot.fvSav)}</td><td>${inr(tot.gap)}</td><td>${inr(tot.lump)}</td><td>${inr(tot.flat)}</td>${hasStep ? `<td>${inr(tot.step)}</td>` : ''}</tr></tbody>`;
+
+  const tl = rows.slice().sort((a, b) => a.years - b.years);
+  drawChart(document.getElementById('gp-chart'), {type:'bar', stacked:true,
+    labels: tl.map(r => 'Yr ' + r.years), tips: tl.map(r => r.name + ' (Yr ' + r.years + ')'),
+    series:[{name:'Covered by existing savings', color:NAVY, data: tl.map(r => Math.min(r.fvSav, r.fvCost))},
+            {name:'To be funded by SIP / lumpsum', color:TEAL, data: tl.map(r => r.gap)}]});
+
+  const maxY = Math.max(...rows.map(r => r.years)), labs = [];
+  for (let y = 1; y <= maxY; y++) labs.push(yrN(y));
+  drawChart(document.getElementById('gp-chart2'), {type:'bar', stacked:true, labels: labs,
+    series: rows.map((r, i) => ({name: r.name, color: PAL[i % PAL.length],
+      data: labs.map((_, k) => k + 1 <= r.years ? (plan.mode === 'flat' ? r.sipFlat : r.sipStep * Math.pow(1 + st/100, k)) : 0)}))});
+
+  const R = ret && ret.inp;
+  document.getElementById('gp-how').innerHTML = `
+    <p><b>Each goal</b> is calculated the same way as in the Financial Goal Calculator:</p>
+    <div class="fx">Future cost = Today's cost × (1 + inflation)<sup>years</sup> &nbsp;→&nbsp; =FV(inflation, years, 0, −cost)<br>
+    Existing savings value = =FV(return/12, years×12, 0, −savings)<br>
+    Shortfall = Future cost − Existing savings value<br>
+    Lumpsum today = =PV(return/12, years×12, 0, −shortfall)<br>
+    Monthly SIP = =PMT(return/12, years×12, 0, −shortfall, 1)</div>
+    ${hasStep ? `<p><b>Step-up SIP:</b> the starting SIP for each goal is set so that a SIP rising ${st}% every 12 months reaches that goal's shortfall. You can verify any goal in the SIP Calculator.</p>` : ''}
+    ${R ? `<p><b>Retirement corpus:</b> monthly expenses at retirement = ${inr(R.exp)} × (1 + ${R.inf}%)<sup>${ret.N}</sup> = ${inr(ret.expRet)}. The corpus is the amount that, earning ${R.post}% a year after retirement, pays this expense at the start of every month for ${ret.M} years, with the expense rising ${R.inf}% every year. Result: <b>${inr(ret.corpus)}</b>.</p>
+    <p><b>How to verify it:</b> open the <b>SWP Calculator</b> and enter corpus ${inr(ret.corpus)}, monthly withdrawal ${inr(ret.expRet)}, return ${R.post}%, period ${ret.M} years, annual increase ${R.inf}%, and "Start of month". The balance at the end should be about ₹0.</p>
+    <p>If expenses did not rise after retirement, the Excel equivalent would be <code>=PV(${R.post}%/12, ${ret.M*12}, -${Math.round(ret.expRet)}, 0, 1)</code>.</p>
+    <p><b>SIP for retirement:</b> <code>=PMT(${R.pre}%/12, ${ret.N*12}, 0, -${Math.round(ret.gap)}, 1)</code> → ${inr(ret.sipFlat)}</p>` : ''}
+    <p><b>Order of the summary:</b> goals are sorted by priority (High → Low), then by the nearest year.</p>`;
+}
+
+function exportPlanCSV(){
+  const p = plan.res; if (!p) return;
+  const q = s => '"' + String(s).replace(/"/g, '""') + '"', f2 = x => x.toFixed(2);
+  const firm = document.getElementById('firmName').textContent.trim();
+  const L = [q(firm + ' - Goal Planning'), q('Prepared on ' + new Date().toLocaleDateString('en-IN')), ''];
+  if (p.hasStep) L.push(q('Annual step-up in SIP (%)') + ',' + p.st, '');
+  L.push(q('GOAL SUMMARY (amounts in Rs)'));
+  const hd = ['Goal','Priority','Years to goal',"Today's cost",'Inflation %','Expected return %','Existing savings','Future cost','Existing savings grow to','Shortfall','Lumpsum needed today','Monthly SIP'];
+  if (p.hasStep) hd.push('Step-up SIP (start)');
+  L.push(hd.map(q).join(','));
+  p.rows.forEach(r => {
+    const a = [q(r.name), q(r.pr), r.years, r.ret ? q('Retirement corpus') : f2(r.cost), r.inf, r.rate, f2(r.sav), f2(r.fvCost), f2(r.fvSav), f2(r.gap), f2(r.lumpExtra), f2(r.sipFlat)];
+    if (p.hasStep) a.push(f2(r.sipStep));
+    L.push(a.join(','));
+  });
+  const t = [q('TOTAL'),'','','','','','', f2(p.tot.fvCost), f2(p.tot.fvSav), f2(p.tot.gap), f2(p.tot.lump), f2(p.tot.flat)];
+  if (p.hasStep) t.push(f2(p.tot.step));
+  L.push(t.join(','));
+  if (p.ret){
+    const R = p.ret.inp;
+    L.push('', q('RETIREMENT MODULE'));
+    RET_FIELDS.forEach(f => L.push(q(f.label + ' (' + (f.unit === '₹' ? 'Rs' : f.unit) + ')') + ',' + R[f.id]));
+    L.push(q('Monthly expenses at retirement') + ',' + f2(p.ret.expRet), q('Corpus required at retirement') + ',' + f2(p.ret.corpus),
+           q('Monthly SIP needed') + ',' + f2(p.ret.sipFlat));
+    if (p.hasStep) L.push(q('Step-up SIP (start)') + ',' + f2(p.ret.sipStep));
+  }
+  L.push('', q('MONTHLY SIP COMMITMENT BY YEAR' + (p.hasStep ? ' - ' + (plan.mode === 'flat' ? 'FLAT SIP' : 'STEP-UP SIP') : '') + ' (Rs)'));
+  L.push([q('Year')].concat(p.rows.map(r => q(r.name)), q('Total')).join(','));
+  const maxY = Math.max(...p.rows.map(r => r.years));
+  for (let y = 1; y <= maxY; y++){
+    const v = p.rows.map(r => y <= r.years ? (plan.mode === 'flat' ? r.sipFlat : r.sipStep * Math.pow(1 + p.st/100, y-1)) : 0);
+    L.push([y].concat(v.map(f2), f2(v.reduce((a, b) => a + b, 0))).join(','));
+  }
+  L.push('', q('Returns are illustrative and not guaranteed. Mutual fund investments are subject to market risks.'));
+  download(L, 'Goal_Planning.csv');
+}
+
+/* =====================================================================
+   FINANCIAL CALCULATOR (Excel-style: PV, FV, PMT, NPER, RATE, CAGR, NPV, IRR, XIRR)
+   ===================================================================== */
+const FC_FIELDS = [
+  {id:'rate', label:'Annual interest / return rate', unit:'%', min:-99, max:200, val:12, noSlider:true},
+  {id:'freq', type:'toggle', label:'Periods per year', options:[['12','Monthly'],['4','Quarterly'],['2','Half-yearly'],['1','Yearly']], val:'12'},
+  {id:'nper', label:'Number of periods (nper)', unit:'Periods', min:0.01, max:1200, val:120, noSlider:true},
+  {id:'pmt',  label:'Payment each period (pmt)', unit:'₹', min:-1e12, max:1e12, val:-10000, noSlider:true},
+  {id:'pv',   label:'Present value (pv)', unit:'₹', min:-1e12, max:1e12, val:0, noSlider:true},
+  {id:'fv',   label:'Future value (fv)', unit:'₹', min:-1e12, max:1e12, val:0, noSlider:true},
+  {id:'type', type:'toggle', label:'Payment timing (type)', options:[['0','End of period (0)'],['1','Start of period (1)']], val:'0'},
+  {id:'b',    label:'Beginning value', unit:'₹', min:0.01, max:1e12, val:100000, noSlider:true},
+  {id:'e',    label:'Ending value', unit:'₹', min:0, max:1e12, val:250000, noSlider:true},
+  {id:'yrs',  label:'Number of years', unit:'Years', min:0.01, max:100, val:7, noSlider:true}
+];
+const SIGN_NOTE = 'Same sign rule as Excel: money you pay out (investment, SIP, EMI) is <b>negative</b>; money you receive (loan amount, maturity, withdrawal) is <b>positive</b>.';
+const FN = {
+  fv:   {name:'FV', title:'Future Value (FV)', desc:'What an investment or a series of regular payments will be worth in future.',
+         use:['rate','freq','nper','pmt','pv','type'], ex:{rate:12, freq:'12', nper:120, pmt:-10000, pv:0, type:'0'},
+         exNote:'Example: ₹10,000 a month for 10 years at 12%.'},
+  pv:   {name:'PV', title:'Present Value (PV)', desc:'What a future amount, or a series of future payments, is worth today.',
+         use:['rate','freq','nper','pmt','fv','type'], ex:{rate:8, freq:'12', nper:240, pmt:50000, fv:0, type:'1'},
+         exNote:'Example: corpus needed today to withdraw ₹50,000 a month for 20 years at 8%.'},
+  pmt:  {name:'PMT', title:'Payment (PMT)', desc:'The regular payment needed – an EMI for a loan, or a SIP to reach a target.',
+         use:['rate','freq','nper','pv','fv','type'], ex:{rate:8.5, freq:'12', nper:240, pv:5000000, fv:0, type:'0'},
+         exNote:'Example: EMI on a ₹50 L loan for 20 years at 8.5%.'},
+  nper: {name:'NPER', title:'Number of Periods (NPER)', desc:'How many periods (months / years) it takes to reach a target or repay a loan.',
+         use:['rate','freq','pmt','pv','fv','type'], ex:{rate:12, freq:'12', pmt:-25000, pv:0, fv:10000000, type:'1'},
+         exNote:'Example: months needed to reach ₹1 Cr with a ₹25,000 SIP at 12%.'},
+  rate: {name:'RATE', title:'Rate of Return (RATE)', desc:'The return (or interest rate) implied by a set of payments – e.g., the real return on an insurance policy.',
+         use:['freq','nper','pmt','pv','fv','type'], ex:{freq:'1', nper:15, pmt:-100000, pv:0, fv:3000000, type:'1'},
+         exNote:'Example: pay ₹1 L a year for 15 years and receive ₹30 L at maturity.'},
+  cagr: {name:'CAGR', title:'Compound Annual Growth Rate (CAGR)', desc:'The steady yearly growth rate between a beginning and an ending value.',
+         use:['b','e','yrs'], ex:{b:100000, e:250000, yrs:7}, exNote:'Example: ₹1 L grew to ₹2.5 L in 7 years.'},
+  npv:  {name:'NPV', title:'Net Present Value (NPV)', desc:'Today\'s value of a series of uneven cash flows at a chosen discount rate.',
+         use:['rate','freq','cf'], ex:{rate:10, freq:'1', cf:[-500000, 100000, 150000, 200000, 250000]},
+         exNote:'Example: invest ₹5 L today and receive four yearly cash flows, discounted at 10%.'},
+  irr:  {name:'IRR', title:'Internal Rate of Return (IRR)', desc:'The return earned on cash flows that occur at regular intervals.',
+         use:['freq','cf'], ex:{freq:'1', cf:[-500000, 100000, 150000, 200000, 250000]},
+         exNote:'Example: invest ₹5 L today and receive four yearly cash flows.'},
+  xirr: {name:'XIRR', title:'Extended IRR (XIRR)', desc:'The annual return on cash flows that occur on irregular dates – the standard way to measure mutual fund returns.',
+         use:['xf'], ex:{xf:[['2021-01-01', -100000], ['2022-06-15', -50000], ['2023-03-10', -50000], ['2026-10-21', 320000]]},
+         exNote:'Example: three investments on different dates and a redemption today.'}
+};
+const fin = {fn:'fv', cf: [], xf: [], res: null};
+
+function finHTML(){
+  return `
+  <h2>Financial Calculator</h2>
+  <p class="desc">Excel-style time-value-of-money functions. Each result shows the exact Excel formula so you can cross-check it.</p>
+  <div class="print-only" style="margin-bottom:10px;color:#6B7280">Prepared on ${new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</div>
+  <div class="ftabs" id="fc-tabs">${Object.entries(FN).map(([k, f]) => `<button data-fn="${k}">${f.name}</button>`).join('')}</div>
+  <div class="grid">
+    <div class="card">
+      <div class="card-h"><h3 id="fc-title"></h3><button class="btn no-print" id="fc-ex">Load example</button></div>
+      <p class="sub" id="fc-desc"></p>
+      ${FC_FIELDS.map(f => `<div data-fw="${f.id}">${fieldHTML('fc', f)}</div>`).join('')}
+      <div id="fc-cfbox"></div>
+      <div class="hint" id="fc-sign">${SIGN_NOTE}</div>
+    </div>
+    <div>
+      <div id="fc-results"></div>
+      <div id="fc-body">
+        <div class="xl"><div class="t">EXCEL FORMULA (copy and paste into any cell)</div><div class="fml" id="fc-xl"></div><div id="fc-xl2" class="fnote"></div>
+          <button class="btn no-print" id="fc-copy">Copy formula</button></div>
+        <div class="card" id="fc-plain"></div>
+        <div class="card" id="fc-tcard" style="display:none"><div class="card-h"><h3 id="fc-ttitle">Cash flow working</h3></div><div class="tablewrap"><table id="fc-table"></table></div></div>
+        <div class="card"><div class="actions"><button class="btn" id="fc-csv">Export to Excel (CSV)</button><button class="btn primary" id="fc-print">Print / Save as PDF</button></div></div>
+        <details class="card how"><summary>How this is calculated</summary><div class="how-body" id="fc-how"></div></details>
+      </div>
+    </div>
+  </div>`;
+}
+
+function setFcVal(id, val){
+  const f = FC_FIELDS.find(x => x.id === id), el = document.getElementById('fc-' + id);
+  if (f.type === 'toggle'){ el.dataset.val = val; el.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === val)); }
+  else el.value = val;
+}
+function loadExample(){
+  const ex = FN[fin.fn].ex;
+  Object.entries(ex).forEach(([k, val]) => {
+    if (k === 'cf') fin.cf = val.map(String);
+    else if (k === 'xf') fin.xf = val.map(r => [r[0], String(r[1])]);
+    else setFcVal(k, String(val));
+  });
+}
+function selectFn(k, loadEx){
+  fin.fn = k; const F = FN[k];
+  document.querySelectorAll('#fc-tabs button').forEach(b => b.classList.toggle('on', b.dataset.fn === k));
+  document.getElementById('fc-title').textContent = F.title;
+  document.getElementById('fc-desc').textContent = F.desc + ' ' + F.exNote;
+  FC_FIELDS.forEach(f => document.querySelector(`[data-fw="${f.id}"]`).style.display = F.use.includes(f.id) ? '' : 'none');
+  document.getElementById('fc-sign').style.display = ['fv','pv','pmt','nper','rate','npv','irr','xirr'].includes(k) ? '' : 'none';
+  if (loadEx) loadExample();
+  renderCF(); runFin();
+}
+
+function renderCF(){
+  const box = document.getElementById('fc-cfbox'), k = fin.fn;
+  if (k !== 'npv' && k !== 'irr' && k !== 'xirr'){ box.innerHTML = ''; return; }
+  const x = k === 'xirr';
+  const rows = x ? fin.xf : fin.cf;
+  box.innerHTML = `<div class="field"><label><span>Cash flows</span><span class="unit">₹</span></label>
+    <div class="tablewrap gp-edit" style="max-height:340px"><table><thead><tr><th>${x ? 'Date' : 'Period'}</th><th>Amount (₹)</th><th></th></tr></thead><tbody>
+    ${rows.map((r, i) => `<tr><td>${x ? `<input type="date" data-i="${i}" data-c="0" value="${r[0]}">` : (i === 0 ? '0 (today)' : i)}</td>
+      <td><input type="number" step="any" data-i="${i}" data-c="${x ? 1 : -1}" value="${x ? r[1] : r}"></td>
+      <td>${rows.length > 2 ? `<button class="del" data-del="${i}" title="Remove">✕</button>` : ''}</td></tr>`).join('')}
+    </tbody></table></div>
+    <button class="btn" id="fc-add" style="margin-top:8px">+ Add cash flow</button>
+    <div class="fnote">${x ? 'The first row is treated as the start date (as in Excel). Investments negative, redemptions / current value positive.' : 'Period 0 is today (usually the investment, negative). Later periods are one ' + ({12:'month',4:'quarter',2:'half-year',1:'year'})[document.getElementById('fc-freq').dataset.val] + ' apart.'}</div></div>`;
+  box.querySelectorAll('input').forEach(el => el.addEventListener('input', () => {
+    const i = +el.dataset.i, c = +el.dataset.c;
+    if (x) fin.xf[i][c] = el.value; else fin.cf[i] = el.value;
+    runFin();
+  }));
+  box.querySelectorAll('[data-del]').forEach(b => b.onclick = () => { (x ? fin.xf : fin.cf).splice(+b.dataset.del, 1); renderCF(); runFin(); });
+  document.getElementById('fc-add').onclick = () => {
+    if (x){ const last = fin.xf[fin.xf.length - 1]; fin.xf.push([last ? last[0] : new Date().toISOString().slice(0, 10), '0']); }
+    else fin.cf.push('0');
+    renderCF(); runFin();
+  };
+}
+
+function initFin(){
+  document.querySelectorAll('#fc-tabs button').forEach(b => b.onclick = () => selectFn(b.dataset.fn, true));
+  document.getElementById('fc-ex').onclick = () => { loadExample(); renderCF(); runFin(); };
+  wireFields('fc', FC_FIELDS, () => { if (fin.fn === 'npv' || fin.fn === 'irr') renderCF(); runFin(); });
+  document.getElementById('fc-copy').onclick = () => {
+    const t = document.getElementById('fc-xl').textContent, b = document.getElementById('fc-copy');
+    const done = () => { b.textContent = 'Copied ✓'; setTimeout(() => b.textContent = 'Copy formula', 1500); };
+    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(t).then(done, () => fallbackCopy(t, done));
+    else fallbackCopy(t, done);
+  };
+  document.getElementById('fc-csv').onclick = exportFinCSV;
+  document.getElementById('fc-print').onclick = () => window.print();
+  selectFn('fv', true);
+}
+function fallbackCopy(t, done){
+  const ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); done(); } catch(e) {} ta.remove();
+}
+
+const pctS = (x, d = 2) => (x*100).toFixed(d) + '%';
+const xlDate = s => { const [y, m, d] = s.split('-').map(Number); return Math.round((Date.UTC(y, m-1, d) - Date.UTC(1899, 11, 30))/864e5); };
+const fDate = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m-1, d).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}); };
+
+function runFin(){
+  const k = fin.fn, F = FN[k];
+  const res = document.getElementById('fc-results'), body = document.getElementById('fc-body');
+  const fail = msg => { res.innerHTML = `<div class="alert">${msg}</div>`; body.classList.add('stale'); fin.res = null; };
+  const v = readFields('fc', FC_FIELDS.filter(f => F.use.includes(f.id)));
+  if (!v) return fail('Please correct the highlighted input(s) to see the result.');
+  const fq = +(v.freq || 1), t = +(v.type || 0), per = ({12:'month',4:'quarter',2:'half-year',1:'year'})[fq];
+  const rStr = v.rate !== undefined ? (fq === 1 ? `${v.rate}%` : `${v.rate}%/${fq}`) : '';
+  const r = v.rate !== undefined ? v.rate/100/fq : 0;
+  let kp = [], xl = '', xl2 = '', plain = '', how = '', table = null, csvRows = [];
+  const NUM = '#NUM! – Excel would return an error. There is no solution for these inputs. Check the signs: amounts paid out should be negative and amounts received positive.';
+
+  if (k === 'fv' || k === 'pv' || k === 'pmt' || k === 'nper' || k === 'rate'){
+    const yrsTxt = n => fq === 12 ? ym(Math.ceil(n - 1e-9)) : trim(n/fq) + ' yrs';
+    if (k === 'fv'){
+      const x = xlFV(r, v.nper, v.pmt, v.pv, t);
+      xl = `=FV(${rStr}, ${v.nper}, ${v.pmt}, ${v.pv}, ${t})`;
+      kp = [{l:'Future value (FV)', txt: inr2(x), f: short(x) + ' after ' + yrsTxt(v.nper), hl:true}];
+      plain = `Paying ${inr(Math.abs(v.pmt))} every ${per}${v.pv ? ` plus ${inr(Math.abs(v.pv))} today` : ''} at ${v.rate}% a year for ${v.nper} ${per}s (${yrsTxt(v.nper)}) grows to <b>${inr(Math.abs(x))}</b>.`;
+      csvRows = [['Future value', x]];
+    }
+    if (k === 'pv'){
+      const x = xlPV(r, v.nper, v.pmt, v.fv, t);
+      xl = `=PV(${rStr}, ${v.nper}, ${v.pmt}, ${v.fv}, ${t})`;
+      kp = [{l:'Present value (PV)', txt: inr2(x), f: short(x) + (x < 0 ? ' (amount to invest today)' : ' (value today)'), hl:true}];
+      plain = `At ${v.rate}% a year, ${v.pmt ? `${inr(Math.abs(v.pmt))} every ${per} for ${v.nper} ${per}s` : ''}${v.pmt && v.fv ? ' plus ' : ''}${v.fv ? inr(Math.abs(v.fv)) + ' at the end' : ''} is worth <b>${inr(Math.abs(x))}</b> today.`;
+      csvRows = [['Present value', x]];
+    }
+    if (k === 'pmt'){
+      if (v.nper <= 0) return fail('Number of periods must be more than 0.');
+      const x = xlPMT(r, v.nper, v.pv, v.fv, t);
+      xl = `=PMT(${rStr}, ${v.nper}, ${v.pv}, ${v.fv}, ${t})`;
+      kp = [{l:'Payment per ' + per + ' (PMT)', txt: inr2(x), f: `Total over ${v.nper} ${per}s: ${inr(Math.abs(x*v.nper))}`, hl:true}];
+      if (v.pv > 0 && !v.fv) kp.push({l:'Total interest', v: Math.abs(x*v.nper) - v.pv});
+      plain = `The regular payment is <b>${inr2(Math.abs(x))}</b> every ${per} for ${v.nper} ${per}s (${yrsTxt(v.nper)}).`;
+      csvRows = [['Payment per period', x]];
+    }
+    if (k === 'nper'){
+      const x = xlNPER(r, v.pmt, v.pv, v.fv, t);
+      if (!isFinite(x) || x < 0) return fail(NUM);
+      xl = `=NPER(${rStr}, ${v.pmt}, ${v.pv}, ${v.fv}, ${t})`;
+      kp = [{l:'Number of periods (NPER)', txt: x.toFixed(2) + ' ' + per + 's', f: '≈ ' + yrsTxt(x), hl:true}];
+      plain = `It takes <b>${x.toFixed(2)} ${per}s</b> (about ${yrsTxt(x)}) with these inputs.`;
+      csvRows = [['Number of periods', x], ['Years', x/fq]];
+    }
+    if (k === 'rate'){
+      if (v.nper <= 0) return fail('Number of periods must be more than 0.');
+      const x = xlRATE(v.nper, v.pmt, v.pv, v.fv, t);
+      if (!isFinite(x)) return fail(NUM);
+      const eff = Math.pow(1 + x, fq) - 1;
+      xl = `=RATE(${v.nper}, ${v.pmt}, ${v.pv}, ${v.fv}, ${t})`;
+      if (fq > 1) xl2 = `Annual rate: <code>=RATE(${v.nper}, ${v.pmt}, ${v.pv}, ${v.fv}, ${t})*${fq}</code> · Effective annual: <code>=(1+RATE(${v.nper}, ${v.pmt}, ${v.pv}, ${v.fv}, ${t}))^${fq}-1</code>`;
+      kp = [{l:'Rate per ' + per, txt: pctS(x, 3), f: 'Excel RATE result'}];
+      if (fq > 1) kp.push({l:'Annual rate (nominal)', txt: pctS(x*fq), f: 'Rate per period × ' + fq, hl:true}, {l:'Effective annual rate', txt: pctS(eff), f:'With compounding'});
+      else kp[0].hl = true;
+      plain = `These cash flows earn <b>${pctS(fq > 1 ? x*fq : x)}</b> a year${fq > 1 ? ` (${pctS(eff)} effective)` : ''}.`;
+      csvRows = [['Rate per period', x], ['Annual nominal rate', x*fq], ['Effective annual rate', eff]];
+    }
+    how = `<p><b>Rate per period</b> = annual rate ÷ periods per year${v.rate !== undefined ? ` = ${v.rate}% ÷ ${fq} = ${trim(v.rate/fq)}%` : ''}.</p>
+      <p>The app uses the same equation as Excel, linking the five values:</p>
+      <div class="fx">pv × (1 + r)<sup>n</sup> + pmt × (1 + r × type) × ((1 + r)<sup>n</sup> − 1) ÷ r + fv = 0</div>
+      <p>Given any four, it solves for the fifth. RATE has no direct formula, so it is solved by trial and error (iteration), exactly like Excel.</p>
+      <p>${SIGN_NOTE}</p>`;
+  }
+
+  if (k === 'cagr'){
+    if (v.e <= 0) return fail('Ending value must be more than 0.');
+    const x = Math.pow(v.e/v.b, 1/v.yrs) - 1;
+    xl = `=(${v.e}/${v.b})^(1/${v.yrs})-1`;
+    xl2 = `Or: <code>=RRI(${v.yrs}, ${v.b}, ${v.e})</code>`;
+    kp = [{l:'CAGR', txt: pctS(x), hl:true, f: `${inr(v.b)} → ${inr(v.e)} in ${v.yrs} yrs`},
+          {l:'Absolute return', txt: pctS(v.e/v.b - 1), f:'Total growth (not annualised)'},
+          {l:'Gain', v: v.e - v.b}];
+    plain = `${inr(v.b)} growing to ${inr(v.e)} in ${v.yrs} years is a steady <b>${pctS(x)}</b> a year.`;
+    how = `<div class="fx">CAGR = (Ending value ÷ Beginning value)<sup>1 ÷ years</sup> − 1</div><p>CAGR is the right measure for a single lumpsum. For SIPs or multiple investments on different dates, use <b>XIRR</b>.</p>`;
+    csvRows = [['CAGR', x], ['Absolute return', v.e/v.b - 1]];
+  }
+
+  if (k === 'npv' || k === 'irr'){
+    const cfs = fin.cf.map(Number);
+    if (cfs.some(c => isNaN(c))) return fail('Please enter a number in every cash flow row.');
+    if (cfs.length < 2) return fail('Enter at least two cash flows.');
+    const arr = `{${cfs.join(',')}}`;
+    let rr, title;
+    if (k === 'npv'){
+      rr = r;
+      const x = npvAt(r, cfs);
+      xl = `=NPV(${rStr}, {${cfs.slice(1).join(',')}})${cfs[0] < 0 ? '' : '+'}${cfs[0]}`;
+      xl2 = 'Excel\'s NPV treats its first value as one period away, so the period-0 amount is added outside the NPV function.';
+      kp = [{l:'Net present value (NPV)', txt: inr2(x), hl:true, f: x >= 0 ? 'Positive: earns more than the discount rate' : 'Negative: earns less than the discount rate'},
+            {l:'Total inflows', v: cfs.filter(c => c > 0).reduce((a, b) => a + b, 0)},
+            {l:'Total outflows', v: Math.abs(cfs.filter(c => c < 0).reduce((a, b) => a + b, 0))}];
+      plain = `Discounted at ${v.rate}% a year, these cash flows are worth <b>${inr2(x)}</b> today. ${x >= 0 ? 'The investment beats the discount rate.' : 'The investment does not cover the discount rate.'}`;
+      title = `Cash flow working at ${v.rate}% a year (${trim(r*100)}% per ${per})`;
+      csvRows = [['NPV', x]];
+    } else {
+      if (!cfs.some(c => c < 0) || !cfs.some(c => c > 0)) return fail('IRR needs at least one negative (investment) and one positive (return) cash flow.');
+      rr = xlIRR(cfs);
+      if (!isFinite(rr)) return fail(NUM);
+      const eff = Math.pow(1 + rr, fq) - 1;
+      xl = `=IRR(${arr})`;
+      if (fq > 1) xl2 = `Annualised (effective): <code>=(1+IRR(${arr}))^${fq}-1</code>`;
+      kp = [{l:'IRR per ' + per, txt: pctS(rr), hl: fq === 1, f:'Excel IRR result'}];
+      if (fq > 1) kp.push({l:'Annualised IRR (effective)', txt: pctS(eff), hl:true}, {l:'Annual IRR (nominal)', txt: pctS(rr*fq), f:'IRR × ' + fq});
+      kp.push({l:'Net gain', v: cfs.reduce((a, b) => a + b, 0), f:'Total inflows − outflows'});
+      plain = `These cash flows earn <b>${pctS(fq > 1 ? eff : rr)}</b> a year. At this rate, the present value of all cash flows is zero (see the table).`;
+      title = `Cash flow working at the IRR (${pctS(rr)} per ${per})`;
+      csvRows = [['IRR per period', rr], ['Annualised IRR (effective)', eff]];
+    }
+    let tot = 0;
+    const trs = cfs.map((c, i) => { const df = 1/Math.pow(1 + rr, i), p = c*df; tot += p; return [i, c, df, p]; });
+    table = {title, head:['Period','Cash flow','Discount factor','Present value'], rows: trs.map(x => [x[0], inr2(x[1]), x[2].toFixed(4), inr2(x[3])]),
+             tot: ['Total', inr2(cfs.reduce((a, b) => a + b, 0)), '', inr2(tot)], raw: trs};
+    how = `<div class="fx">NPV = Σ cash flow<sub>t</sub> ÷ (1 + r)<sup>t</sup> &nbsp;&nbsp; (t = 0, 1, 2 … periods)</div>
+      <p><b>IRR</b> is the rate r at which this NPV equals zero. It is found by iteration, like Excel.</p>
+      <p>If cash flows are monthly, the IRR is a monthly rate. Annualise it with (1 + IRR)<sup>12</sup> − 1.</p>`;
+  }
+
+  if (k === 'xirr'){
+    const fl = fin.xf.map(r => ({ds: r[0], d: r[0] ? new Date(r[0] + 'T00:00:00').getTime() : NaN, a: Number(r[1])}));
+    if (fl.some(f => isNaN(f.d) || isNaN(f.a))) return fail('Please enter a valid date and amount in every row.');
+    if (fl.length < 2) return fail('Enter at least two cash flows.');
+    if (fl.some(f => f.d < fl[0].d)) return fail('No date can be earlier than the first row\'s date (Excel rule). Put the earliest cash flow first.');
+    if (!fl.some(f => f.a < 0) || !fl.some(f => f.a > 0)) return fail('XIRR needs at least one negative (investment) and one positive (redemption / current value) cash flow.');
+    const x = xlXIRR(fl);
+    if (!isFinite(x)) return fail(NUM);
+    const inv = Math.abs(fl.filter(f => f.a < 0).reduce((s, f) => s + f.a, 0)), got = fl.filter(f => f.a > 0).reduce((s, f) => s + f.a, 0);
+    const last = Math.max(...fl.map(f => f.d)), days = Math.round((last - fl[0].d)/864e5);
+    xl = `=XIRR({${fl.map(f => f.a).join(',')}}, {${fl.map(f => xlDate(f.ds)).join(',')}})`;
+    xl2 = `The second list holds the dates as Excel date numbers. If your amounts are in A2:A${fl.length + 1} and dates in B2:B${fl.length + 1}, use <code>=XIRR(A2:A${fl.length + 1}, B2:B${fl.length + 1})</code>.`;
+    kp = [{l:'XIRR (annualised return)', txt: pctS(x), hl:true},
+          {l:'Total invested', v: inv}, {l:'Total received / current value', v: got},
+          {l:'Absolute gain', v: got - inv, f: pctS(got/inv - 1) + ' absolute return'},
+          {l:'Period', txt: ym(Math.round(days/30.4375)), f: days + ' days'}];
+    plain = `These investments have earned <b>${pctS(x)}</b> a year (XIRR), the same measure mutual fund statements use.`;
+    let tot = 0;
+    const trs = fl.map(f => { const yrs = (f.d - fl[0].d)/864e5/365, df = 1/Math.pow(1 + x, yrs), p = f.a*df; tot += p; return [f.ds, f.a, yrs, df, p]; });
+    table = {title:`Cash flow working at the XIRR (${pctS(x)})`, head:['Date','Cash flow','Years from start','Discount factor','Present value'],
+             rows: trs.map(t => [fDate(t[0]), inr2(t[1]), t[2].toFixed(4), t[3].toFixed(4), inr2(t[4])]),
+             tot:['Total', inr2(fl.reduce((s, f) => s + f.a, 0)), '', '', inr2(tot)], raw: trs};
+    how = `<div class="fx">Σ cash flow<sub>i</sub> ÷ (1 + XIRR)<sup>(date<sub>i</sub> − first date) ÷ 365</sup> = 0</div>
+      <p>XIRR is the annual rate at which the present value of all cash flows is zero, using the actual days between dates. It is found by iteration, like Excel.</p>`;
+    csvRows = [['XIRR', x], ['Total invested', inv], ['Total received', got]];
+  }
+
+  body.classList.remove('stale');
+  res.innerHTML = '<div class="kpis">' + kp.map(kpiHTML).join('') + '</div>';
+  document.getElementById('fc-xl').textContent = xl;
+  document.getElementById('fc-xl2').innerHTML = xl2;
+  document.getElementById('fc-plain').innerHTML = `<div class="card-h"><h3>In plain words</h3></div><p style="margin:0;line-height:1.6">${plain}</p>`;
+  const tc = document.getElementById('fc-tcard');
+  if (table){
+    tc.style.display = '';
+    document.getElementById('fc-ttitle').textContent = table.title;
+    document.getElementById('fc-table').innerHTML = '<thead><tr>' + table.head.map(h => `<th>${h}</th>`).join('') + '</tr></thead><tbody>' +
+      table.rows.map(r => '<tr>' + r.map(c => `<td>${c}</td>`).join('') + '</tr>').join('') +
+      '<tr class="tot">' + table.tot.map(c => `<td>${c}</td>`).join('') + '</tr></tbody>';
+  } else tc.style.display = 'none';
+  document.getElementById('fc-how').innerHTML = how;
+  fin.res = {k, v, xl, csvRows, table};
+}
+
+function exportFinCSV(){
+  const p = fin.res; if (!p) return;
+  const q = s => '"' + String(s).replace(/"/g, '""') + '"';
+  const firm = document.getElementById('firmName').textContent.trim(), F = FN[p.k];
+  const L = [q(firm + ' - Financial Calculator - ' + F.title), q('Prepared on ' + new Date().toLocaleDateString('en-IN')), '', q('INPUTS')];
+  FC_FIELDS.filter(f => F.use.includes(f.id)).forEach(f => {
+    let val = p.v[f.id]; if (f.type === 'toggle') val = f.options.find(o => o[0] === val)[1];
+    L.push(q(f.label) + ',' + q(val));
+  });
+  if (p.k === 'npv' || p.k === 'irr'){ L.push(q('Cash flows (period 0 onwards)')); fin.cf.forEach((c, i) => L.push(i + ',' + c)); }
+  if (p.k === 'xirr'){ L.push(q('Date') + ',' + q('Amount')); fin.xf.forEach(r => L.push(q(r[0]) + ',' + r[1])); }
+  L.push('', q('RESULT'));
+  p.csvRows.forEach(r => L.push(q(r[0]) + ',' + (+r[1]).toFixed(6)));
+  L.push(q('Excel formula') + ',' + q(p.xl));
+  if (p.table){
+    L.push('', q(p.table.title.toUpperCase()), p.table.head.map(q).join(','));
+    p.table.raw.forEach(r => L.push(r.map(x => typeof x === 'number' ? x.toFixed(6) : q(x)).join(',')));
+  }
+  download(L, `Financial_Calculator_${F.name}.csv`);
+}
+
+/* =====================================================================
+   NAVIGATION, BRANDING, PRINT
+   ===================================================================== */
+document.querySelectorAll('#nav button[data-calc]').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#nav button').forEach(x => x.classList.toggle('active', x === b));
+  document.querySelectorAll('.calc').forEach(s => s.classList.toggle('active', s.id === 'calc-' + b.dataset.calc));
+  document.querySelectorAll('#calc-' + b.dataset.calc + ' canvas').forEach(renderChart);
+  window.scrollTo(0, 0);
+});
+window.addEventListener('resize', () => document.querySelectorAll('canvas').forEach(renderChart));
+window.addEventListener('beforeprint', () => {
+  document.querySelectorAll('.calc.active details').forEach(d => d.open = true);
+  document.getElementById('printDate').textContent = 'Printed on ' + new Date().toLocaleString('en-IN');
+});
+
+const store = {get: k => { try { return localStorage.getItem(k); } catch(e) { return null; } },
+               set: (k, v) => { try { localStorage.setItem(k, v); } catch(e) {} }};
+const firmEl = document.getElementById('firmName'), logoEl = document.getElementById('logo'), logoFile = document.getElementById('logoFile');
+if (store.get('fc_firm')) firmEl.textContent = store.get('fc_firm');
+firmEl.addEventListener('input', () => store.set('fc_firm', firmEl.textContent.trim()));
+firmEl.addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); firmEl.blur(); } });
+function setLogo(src){ logoEl.innerHTML = `<img src="${src}" alt="Logo">`; logoEl.classList.add('has-img'); }
+if (store.get('fc_logo')) setLogo(store.get('fc_logo'));
+logoEl.onclick = () => logoFile.click();
+logoFile.onchange = () => {
+  const f = logoFile.files[0]; if (!f) return;
+  const r = new FileReader(); r.onload = () => { setLogo(r.result); store.set('fc_logo', r.result); }; r.readAsDataURL(f);
+};
+
+document.getElementById('nojs').remove();
+build();
+(() => {
+  const main = document.getElementById('main');
+  const p = document.createElement('section'); p.className = 'calc'; p.id = 'calc-plan'; p.innerHTML = planHTML(); main.appendChild(p); initPlan();
+  const f = document.createElement('section'); f.className = 'calc'; f.id = 'calc-fin'; f.innerHTML = finHTML(); main.appendChild(f); initFin();
+})();
+</script>
+</body>
+</html>
